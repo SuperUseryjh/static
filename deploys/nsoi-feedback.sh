@@ -2,7 +2,7 @@
 
 # 默认配置
 REPO_URL="https://github.com/SuperUseryjh/NSOI-feedback.git"
-APP_DIR="nsoi-feedback"
+APP_DIR="NSOI-feedback"
 CONTAINER_NAME="feedback-box-container"
 IMAGE_NAME="feedback-box"
 DEFAULT_PORT="5000"
