@@ -33,7 +33,7 @@ REPO_URL="https://github.com/SuperUseryjh/NSOI-feedback.git"
 PROJECT_DIR="NSOI-feedback"
 
 if [ -d "$PROJECT_DIR" ]; then
-    echo "项目目录 $PROJECT_DIR 已存在，尝试拉取最新代码..."
+    echo "项目目录 $PROJECT_DIR 已存在，尝试   取最新代码..."
     cd "$PROJECT_DIR"
     git pull
     cd ..
@@ -47,24 +47,32 @@ cd "$PROJECT_DIR"
 # --- 收集所有用户输入 ---
 echo "\n--- 配置应用设置 ---"
 
-read -p "请输入应用运行端口 (默认为 3000): " APP_PORT
-APP_PORT=${APP_PORT:-3000}
+# 检查是否在交互式终端中运行
+if [[ -t 0 ]]; then
+    read -p "请输入应用运行端口 (默认为 3000): " APP_PORT_INPUT
+    APP_PORT=${APP_PORT_INPUT:-3000}
 
-read -p "请输入管理员用户名 (默认为 admin): " ADMIN_USERNAME
-ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+    read -p "请输入管理员用户名 (默认为 admin): " ADMIN_USERNAME_INPUT
+    ADMIN_USERNAME=${ADMIN_USERNAME_INPUT:-admin}
 
-read -s -p "请输入管理员密码: " ADMIN_PASSWORD
-echo
-read -s -p "请再次输入管理员密码以确认: " ADMIN_PASSWORD_CONFIRM
-echo
-
-while [ "$ADMIN_PASSWORD" != "$ADMIN_PASSWORD_CONFIRM" ] || [ -z "$ADMIN_PASSWORD" ]; do
-    echo "密码不匹配或为空，请重新输入。"
     read -s -p "请输入管理员密码: " ADMIN_PASSWORD
     echo
     read -s -p "请再次输入管理员密码以确认: " ADMIN_PASSWORD_CONFIRM
     echo
-done
+
+    while [ "$ADMIN_PASSWORD" != "$ADMIN_PASSWORD_CONFIRM" ] || [ -z "$ADMIN_PASSWORD" ]; do
+        echo "密码不匹配或为空，请重新输入。"
+        read -s -p "请输入管理员密码: " ADMIN_PASSWORD
+        echo
+        read -s -p "请再次输入管理员密码以确认: " ADMIN_PASSWORD_CONFIRM
+        echo
+    done
+else
+    echo "非交互式模式下运行，使用默认配置。"
+    APP_PORT=3000
+    ADMIN_USERNAME=admin
+    ADMIN_PASSWORD=password # 在非交互式模式下，使用默认密码，建议用户在部署后修改
+fi
 
 # --- 自动生成 Redis 密码和 Secret Key ---
 REDIS_PASSWORD=$(head /dev/urandom | tr -dc A-Za-z0-9_ | head -c 16)
@@ -104,5 +112,6 @@ echo "管理员用户名: ${ADMIN_USERNAME}"
 echo "管理员密码: ${ADMIN_PASSWORD}"
 echo "Redis 密码: ${REDIS_PASSWORD}"
 echo "请妥善保管这些凭据。"
+
 
 
