@@ -44,11 +44,12 @@ fi
 
 cd "$PROJECT_DIR"
 
-# --- 交互式设置应用运行端口 ---
+# --- 收集所有用户输入 ---
+echo "\n--- 配置应用设置 ---"
+
 read -p "请输入应用运行端口 (默认为 3000): " APP_PORT
 APP_PORT=${APP_PORT:-3000}
 
-# --- 交互式设置管理员凭据 ---
 read -p "请输入管理员用户名 (默认为 admin): " ADMIN_USERNAME
 ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
 
@@ -65,15 +66,16 @@ while [ "$ADMIN_PASSWORD" != "$ADMIN_PASSWORD_CONFIRM" ] || [ -z "$ADMIN_PASSWOR
     echo
 done
 
-# --- 自动生成 Redis 密码 ---
+# --- 自动生成 Redis 密码和 Secret Key ---
 REDIS_PASSWORD=$(head /dev/urandom | tr -dc A-Za-z0-9_ | head -c 16)
+SECRET_KEY=$(head /dev/urandom | tr -dc A-Za-z0-9_ | head -c 32)
 echo "已为 Redis 自动生成密码: $REDIS_PASSWORD"
 
 # --- 生成 .env 文件 ---
-echo "生成 .env 文件..."
+echo "\n生成 .env 文件..."
 cat << EOF > .env
 PORT=${APP_PORT}
-SECRET_KEY=$(head /dev/urandom | tr -dc A-Za-z0-9_ | head -c 32)
+SECRET_KEY=${SECRET_KEY}
 ADMIN_USERNAME=${ADMIN_USERNAME}
 ADMIN_PASSWORD=${ADMIN_PASSWORD}
 REDIS_HOST=redis
@@ -83,9 +85,11 @@ EOF
 
 # --- 更新 docker-compose.yml 中的端口映射 ---
 echo "更新 docker-compose.yml 中的端口映射..."
-sed -i "/- \"3000:3000\"/c\      - \"${APP_PORT}:3000\"" docker-compose.yml
+# 使用临时文件进行替换，以避免 sed -i 的兼容性问题和确保原子性
+sed "s/^- \"[0-9]\+:3000\"/      - \"${APP_PORT}:3000\"/" docker-compose.yml > docker-compose.yml.tmp
+mv docker-compose.yml.tmp docker-compose.yml
 
-echo "停止现有 Docker Compose 服务..."
+echo "\n停止现有 Docker Compose 服务..."
 docker-compose down
 
 echo "构建 Docker 镜像..."
@@ -94,7 +98,7 @@ docker-compose build
 echo "启动 Docker Compose 服务..."
 docker-compose up -d
 
-echo "部署完成！"
+echo "\n部署完成！"
 echo "应用将在端口 ${APP_PORT} 上运行。"
 echo "管理员用户名: ${ADMIN_USERNAME}"
 echo "管理员密码: ${ADMIN_PASSWORD}"
