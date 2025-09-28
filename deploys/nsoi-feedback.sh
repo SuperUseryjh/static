@@ -30,7 +30,7 @@ echo "所有必要的工具都已安装或已尝试安装。"
 
 # --- Git 仓库拉取 ---
 REPO_URL="https://github.com/SuperUseryjh/NSOI-feedback.git"
-PROJECT_DIR="nsoi-feedback"
+PROJECT_DIR="NSOI-feedback"
 
 if [ -d "$PROJECT_DIR" ]; then
     echo "项目目录 $PROJECT_DIR 已存在，尝试拉取最新代码..."
