@@ -30,7 +30,7 @@ echo "所有必要的工具都已安装或已尝试安装。"
 
 # --- Git 仓库拉取 ---
 REPO_URL="https://github.com/SuperUseryjh/NSOI-feedback.git"
-PROJECT_DIR="NSOI-feedback"
+PROJECT_DIR="nsoi-feedback"
 
 if [ -d "$PROJECT_DIR" ]; then
     echo "项目目录 $PROJECT_DIR 已存在，尝试拉取最新代码..."
@@ -83,7 +83,7 @@ EOF
 
 # --- 更新 docker-compose.yml 中的端口映射 ---
 echo "更新 docker-compose.yml 中的端口映射..."
-sed -i "s/\"3000:3000\"/\"${APP_PORT}:3000\"/g" docker-compose.yml
+sed -i "/- \"3000:3000\"/c\      - \"${APP_PORT}:3000\"" docker-compose.yml
 
 echo "停止现有 Docker Compose 服务..."
 docker-compose down
@@ -100,4 +100,5 @@ echo "管理员用户名: ${ADMIN_USERNAME}"
 echo "管理员密码: ${ADMIN_PASSWORD}"
 echo "Redis 密码: ${REDIS_PASSWORD}"
 echo "请妥善保管这些凭据。"
+
 
