@@ -3,20 +3,30 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-# --- 环境检查 ---
-check_command() {
-    if ! command -v "$1" &> /dev/null
-    then
-        echo "错误: $1 未安装。请安装 $1 后重试。"
-        exit 1
+# --- 环境检查与自动安装 ---
+install_tool() {
+    local tool_name=$1
+    local apt_package=$2
+    local yum_package=$3
+
+    if ! command -v "$tool_name" &> /dev/null; then
+        echo "警告: $tool_name 未安装。尝试自动安装 $tool_name (主要针对 Debian/Ubuntu 或 CentOS/RHEL)..."
+        if command -v apt-get &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y "$apt_package"
+        elif command -v yum &> /dev/null; then
+            sudo yum install -y "$yum_package"
+        else
+            echo "错误: 无法自动安装 $tool_name。请手动安装 $tool_name 后重试。"
+            exit 1
+        fi
     fi
 }
 
-echo "检查必要的工具..."
-check_command git
-check_command docker
-check_command docker-compose
-echo "所有必要的工具都已安装。"
+echo "检查必要的工具并尝试自动安装..."
+install_tool git git git
+install_tool docker docker.io docker
+install_tool docker-compose docker-compose docker-compose
+echo "所有必要的工具都已安装或已尝试安装。"
 
 # --- Git 仓库拉取 ---
 REPO_URL="https://github.com/SuperUseryjh/NSOI-feedback.git"
