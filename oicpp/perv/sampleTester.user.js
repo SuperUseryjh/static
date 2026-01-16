@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OICPP sampleTester
 // @namespace    https://oicpp.mywwzh.top/
-// @version      1.2.3-alpha2
+// @version      1.2.3-alpha3
 // @description  从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本
 // @author       Mr_Onion & mywwzh
 // @match        https://www.luogu.com.cn/*
@@ -12,10 +12,13 @@
 // @match        https://codeforces.com/gym/*/problem/*
 // @match        https://hydro.ac/*
 // @match        https://www.yanhaozhe.cn/*
+// @grant        GM_info
 // @grant        GM_xmlhttpRequest
 // @connect      http://127.0.0.1:20030
 // @connect      127.0.0.1
 // ==/UserScript==
+const SCRIPT_VERSION = "1.2.3-alpha3";
+
 // dist/constants.js
 var API_URL = "http://127.0.0.1:20030/createNewProblem";
 var PANEL_ID = "fetchProblemPanel";
@@ -32,6 +35,10 @@ var STATE_SELECTION_PANEL_ID = "htojStateSelectionPanel";
 var CONTROL_BTN_ID = "fetchProblemControlBtn";
 var PROBLEM_NAME_MODE_KEY = "fetchProblemNameMode";
 var PROBLEM_NAME_CUSTOM_INPUT_KEY = "fetchProblemNameCustomInput";
+var STATIC_BASE_URL = "https://onion-static.netlify.app/oicpp";
+var LOCAL_STORAGE_LAST_CHECK_TIME = "fetchProblemLastUpdateCheck";
+var UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1e3;
+var PREVIEW_UPDATE_CHECK_INTERVAL = 1 * 60 * 60 * 1e3;
 
 // dist/utils.js
 function makeDraggable(element, handle) {
@@ -1584,8 +1591,43 @@ function initializeUI() {
 }
 
 // dist/main.js
+async function checkUpdate() {
+  const lastCheckTime = parseInt(localStorage.getItem(LOCAL_STORAGE_LAST_CHECK_TIME) || "0");
+  const now = Date.now();
+  const isStandardVersion = /^[0-9]+\.[0-9]+\.[0-9]+$/.test(SCRIPT_VERSION);
+  const currentCheckInterval = isStandardVersion ? UPDATE_CHECK_INTERVAL : PREVIEW_UPDATE_CHECK_INTERVAL;
+  if (now - lastCheckTime < currentCheckInterval) {
+    console.log("OICPP SampleTester: \u8DDD\u79BB\u4E0A\u6B21\u68C0\u67E5\u66F4\u65B0\u65F6\u95F4\u4E0D\u8DB3\uFF0C\u8DF3\u8FC7\u68C0\u67E5\u3002");
+    return;
+  }
+  console.log("OICPP SampleTester: \u6B63\u5728\u68C0\u67E5\u66F4\u65B0...");
+  localStorage.setItem(LOCAL_STORAGE_LAST_CHECK_TIME, now.toString());
+  const versionPath = isStandardVersion ? "pub" : "perv";
+  const updateUrl = `${STATIC_BASE_URL}/${versionPath}/version.json`;
+  try {
+    const response = await fetch(updateUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const remotePackageJson = await response.json();
+    const remoteVersion = remotePackageJson.version;
+    if (remoteVersion && remoteVersion !== SCRIPT_VERSION) {
+      console.log(`OICPP SampleTester: \u53D1\u73B0\u65B0\u7248\u672C\uFF01\u5F53\u524D\u7248\u672C: ${SCRIPT_VERSION}, \u6700\u65B0\u7248\u672C: ${remoteVersion}`);
+      const userScriptFileName = "sampleTester.user.js";
+      const userScriptUrl = `${STATIC_BASE_URL}/${versionPath}/${userScriptFileName}`;
+      if (confirm(`OICPP SampleTester: \u53D1\u73B0\u65B0\u7248\u672C ${remoteVersion}\uFF01\u70B9\u51FB\u786E\u5B9A\u5728\u65B0\u6807\u7B7E\u9875\u4E2D\u6253\u5F00\u66F4\u65B0\u3002`)) {
+        window.open(userScriptUrl, "_blank");
+      }
+    } else {
+      console.log("OICPP SampleTester: \u5F53\u524D\u5DF2\u662F\u6700\u65B0\u7248\u672C\u3002");
+    }
+  } catch (error) {
+    console.error("OICPP SampleTester: \u68C0\u67E5\u66F4\u65B0\u5931\u8D25:", error);
+  }
+}
 (function() {
   "use strict";
   console.log("OICPP SampleTester: \u6CB9\u7334\u811A\u672C\u5DF2\u52A0\u8F7D\u3002");
   initializeUI();
+  checkUpdate();
 })();

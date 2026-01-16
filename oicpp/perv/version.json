@@ -1,6 +1,6 @@
 {
   "name": "oicpp-sample-tester",
-  "version": "1.2.3-alpha2",
+  "version": "1.2.3-alpha3",
   "description": "从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本",
   "main": "dist/fetch_tampermonkey.user.js",
   "userscript": {
