@@ -1,6 +1,6 @@
 {
   "name": "oicpp-sample-tester",
-  "version": "1.2.3-alpha5",
+  "version": "1.2.4-alpha4",
   "description": "从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本",
   "main": "dist/fetch_tampermonkey.user.js",
   "userscript": {
@@ -9,19 +9,19 @@
     "description": "从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本",
     "author": "Mr_Onion & mywwzh",
     "match": [
-      "https://www.luogu.com.cn/*",
-      "https://htoj.com.cn/cpp/oj/problem/detail?pid=*",
-      "https://atcoder.jp/contests/*/tasks/*",
-      "https://codeforces.com/contest/*/problem/*",
-      "https://codeforces.com/problemset/problem/*/*",
-      "https://codeforces.com/gym/*/problem/*",
-      "https://hydro.ac/*",
-      "https://www.yanhaozhe.cn/*"
+      "*://*/*"
     ],
-    "grant": "GM_xmlhttpRequest",
+    "grant":[
+      "GM_xmlhttpRequest",
+      "GM_info",
+      "GM_openInTab",
+      "GM_setValue",
+      "GM_getValue"
+    ],
     "connect": [
       "http://127.0.0.1:20030",
-      "127.0.0.1"
+      "127.0.0.1",
+      "onion-static.netlify.app"
     ]
   },
   "scripts": {
