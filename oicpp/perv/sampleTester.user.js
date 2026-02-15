@@ -1,20 +1,25 @@
 // ==UserScript==
 // @name         OICPP sampleTester
 // @namespace    https://oicpp.mywwzh.top/
-// @version      1.2.4-alpha4
+// @version      1.2.4-alpha1
 // @description  从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本
 // @author       Mr_Onion & mywwzh
-// @match        *://*/*
-// @grant        GM_xmlhttpRequest
+// @match        https://www.luogu.com.cn/*
+// @match        https://htoj.com.cn/cpp/oj/problem/detail?pid=*
+// @match        https://atcoder.jp/contests/*/tasks/*
+// @match        https://codeforces.com/contest/*/problem/*
+// @match        https://codeforces.com/problemset/problem/*/*
+// @match        https://codeforces.com/gym/*/problem/*
+// @match        https://hydro.ac/*
+// @match        https://www.yanhaozhe.cn/*
 // @grant        GM_info
 // @grant        GM_openInTab
-// @grant        GM_setValue
-// @grant        GM_getValue
+// @grant        GM_xmlhttpRequest
+// @connect      onion-static.netlify.app
 // @connect      http://127.0.0.1:20030
 // @connect      127.0.0.1
-// @connect      onion-static.netlify.app
 // ==/UserScript==
-const SCRIPT_VERSION = "1.2.4-alpha4";
+const SCRIPT_VERSION = "1.2.4-alpha1";
 
 // dist/constants.js
 var API_URL = "http://127.0.0.1:20030/createNewProblem";
@@ -32,7 +37,7 @@ var STATE_SELECTION_PANEL_ID = "htojStateSelectionPanel";
 var CONTROL_BTN_ID = "fetchProblemControlBtn";
 var PROBLEM_NAME_MODE_KEY = "fetchProblemNameMode";
 var PROBLEM_NAME_CUSTOM_INPUT_KEY = "fetchProblemNameCustomInput";
-var STATIC_BASE_URL = "https://onion-static.netlify.app/oicpp";
+var STATIC_BASE_URL = "https://static.yaoonion.fun/oicpp";
 var LOCAL_STORAGE_LAST_CHECK_TIME = "fetchProblemLastUpdateCheck";
 var UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1e3;
 var PREVIEW_UPDATE_CHECK_INTERVAL = 1 * 60 * 60 * 1e3;
@@ -980,6 +985,62 @@ function clampButtonPosition(button, currentRight, currentTop) {
   newTop = Math.max(10, newTop);
   return { right: newRight, top: newTop };
 }
+function createProblemNameSettingsPanel() {
+  let panel = document.getElementById("problemNameSettingsPanel");
+  if (panel) {
+    panel.remove();
+  }
+  panel = document.createElement("div");
+  panel.id = "problemNameSettingsPanel";
+  panel.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        border: 1px solid #007bff;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        padding: 20px;
+        z-index: 2147483647;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 300px;
+        max-width: 90vw;
+    `;
+  panel.innerHTML = `
+        <h4 style="margin: 0; font-size: 18px; color: #007bff; text-align: center;">\u9898\u76EE\u540D\u79F0\u8BBE\u7F6E</h4>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px;">
+                <input type="radio" name="problemNameMode" value="default" id="problemNameModeDefault">
+                \u9ED8\u8BA4 (\u4F7F\u7528\u7F51\u9875\u6807\u9898)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px;">
+                <input type="radio" name="problemNameMode" value="custom" id="problemNameModeCustom">
+                \u81EA\u5B9A\u4E49 (\u6BCF\u6B21\u6293\u53D6\u65F6\u8F93\u5165)
+            </label>
+        </div>
+        <button id="saveProblemNameSettingsBtn" style="padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; font-weight: bold;">\u4FDD\u5B58</button>
+    `;
+  document.body.appendChild(panel);
+  const savedMode = localStorage.getItem(PROBLEM_NAME_MODE_KEY) || "default";
+  const defaultRadio = panel.querySelector("#problemNameModeDefault");
+  const customRadio = panel.querySelector("#problemNameModeCustom");
+  if (savedMode === "default") {
+    defaultRadio.checked = true;
+  } else {
+    customRadio.checked = true;
+  }
+  panel.querySelector("#saveProblemNameSettingsBtn").addEventListener("click", () => {
+    const selectedMode = document.querySelector('input[name="problemNameMode"]:checked').value;
+    localStorage.setItem(PROBLEM_NAME_MODE_KEY, selectedMode);
+    showCustomDialog("\u8BBE\u7F6E\u5DF2\u4FDD\u5B58\uFF01");
+    panel.remove();
+  });
+}
 function showCustomDialog(message, inputValue = "", showInput = false, inputPlaceholder = "") {
   return new Promise((resolve) => {
     let dialogOverlay = document.getElementById("customDialogOverlay");
@@ -1128,9 +1189,7 @@ function initializeUI() {
   const config = domainConfigs[hostname];
   console.log("OICPP SampleTester: initializeUI - \u5F53\u524D\u4E3B\u673A\u540D:", hostname, "\u914D\u7F6E:", config);
   const controlBtn = createControlPanelButtonUI();
-  controlBtn.addEventListener("click", () => {
-    window.location.href = window.location.origin + "/oicpp-settings";
-  });
+  controlBtn.addEventListener("click", createProblemNameSettingsPanel);
   let panel = document.getElementById(PANEL_ID);
   let toggleBtn = document.getElementById(TOGGLE_BTN_ID);
   const setupHtojButton = (state) => {
@@ -1533,234 +1592,7 @@ function initializeUI() {
   });
 }
 
-// dist/settingsPage.js
-var DYNAMIC_CONFIGS_STORAGE_KEY = "oicpp_dynamic_configs";
-function renderSettingsPage() {
-  document.body.innerHTML = "";
-  const mainContainer = document.createElement("div");
-  mainContainer.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        min-height: 100vh;
-        background-color: #f0f2f5;
-        padding: 20px;
-        box-sizing: border-box;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #333;
-    `;
-  document.body.appendChild(mainContainer);
-  const settingsCard = document.createElement("div");
-  settingsCard.id = "oicppSettingsCard";
-  settingsCard.style.cssText = `
-        background-color: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-        padding: 40px;
-        width: 100%;
-        max-width: 700px;
-        margin-top: 30px;
-        margin-bottom: 30px;
-        box-sizing: border-box;
-    `;
-  mainContainer.appendChild(settingsCard);
-  settingsCard.innerHTML = `
-        <h2 style="text-align: center; color: #007bff; margin-bottom: 35px; font-size: 28px; font-weight: 600;">OICPP \u8BBE\u7F6E</h2>
-
-        <!-- \u9898\u76EE\u540D\u79F0\u6A21\u5F0F\u8BBE\u7F6E -->
-        <div style="margin-bottom: 30px; padding-bottom: 25px; border-bottom: 1px solid #eee;">
-            <h4 style="color: #333; margin-bottom: 20px; font-size: 20px; font-weight: 600;">\u9898\u76EE\u540D\u79F0\u6A21\u5F0F</h4>
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                <label style="display: flex; align-items: center; gap: 12px; font-size: 17px; cursor: pointer;">
-                    <input type="radio" name="problemNameMode" value="default" id="problemNameModeDefault" style="transform: scale(1.3); accent-color: #007bff;">
-                    \u9ED8\u8BA4 (\u4F7F\u7528\u7F51\u9875\u6807\u9898)
-                </label>
-                <label style="display: flex; align-items: center; gap: 12px; font-size: 17px; cursor: pointer;">
-                    <input type="radio" name="problemNameMode" value="custom" id="problemNameModeCustom" style="transform: scale(1.3); accent-color: #007bff;">
-                    \u81EA\u5B9A\u4E49 (\u6BCF\u6B21\u6293\u53D6\u65F6\u8F93\u5165)
-                </label>
-            </div>
-            <button id="saveProblemNameSettingsBtn" style="width: 100%; padding: 12px 15px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 18px; font-weight: bold; transition: background-color 0.2s ease; margin-top: 30px;">
-                \u4FDD\u5B58\u9898\u76EE\u540D\u79F0\u8BBE\u7F6E
-            </button>
-        </div>
-
-        <!-- \u52A8\u6001\u57DF\u540D\u914D\u7F6E -->
-        <div style="margin-bottom: 30px; padding-bottom: 25px; border-bottom: 1px solid #eee;">
-            <h4 style="color: #333; margin-bottom: 20px; font-size: 20px; font-weight: 600;">\u914D\u7F6E\u52A8\u6001\u57DF\u540D</h4>
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                <input type="text" id="dynamicDomainInput" placeholder="\u8F93\u5165\u57DF\u540D\uFF0C\u4F8B\u5982\uFF1Aexample.com" style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; width: calc(100% - 24px);">
-                <select id="ojTemplateSelect" style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; width: 100%; background-color: #fff; cursor: pointer;">
-                    <option value="">\u9009\u62E9 OJ \u6A21\u677F</option>
-                </select>
-                <button id="addDynamicDomainBtn" style="width: 100%; padding: 12px 15px; background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 18px; font-weight: bold; transition: background-color 0.2s ease;">
-                    \u6DFB\u52A0\u52A8\u6001\u57DF\u540D
-                </button>
-            </div>
-        </div>
-
-        <!-- \u5DF2\u914D\u7F6E\u52A8\u6001\u57DF\u540D\u5217\u8868 -->
-        <div>
-            <h4 style="color: #333; margin-bottom: 20px; font-size: 20px; font-weight: 600;">\u5DF2\u914D\u7F6E\u52A8\u6001\u57DF\u540D</h4>
-            <ul id="dynamicDomainList" style="list-style: none; padding: 0; margin: 0;">
-                <!-- \u52A8\u6001\u57DF\u540D\u5C06\u5728\u8FD9\u91CC\u52A0\u8F7D -->
-            </ul>
-        </div>
-    `;
-  const savedMode = localStorage.getItem(PROBLEM_NAME_MODE_KEY) || "default";
-  const defaultRadio = settingsCard.querySelector("#problemNameModeDefault");
-  const customRadio = settingsCard.querySelector("#problemNameModeCustom");
-  if (savedMode === "default") {
-    defaultRadio.checked = true;
-  } else {
-    customRadio.checked = true;
-  }
-  settingsCard.querySelector("#saveProblemNameSettingsBtn").addEventListener("click", () => {
-    const selectedMode = settingsCard.querySelector('input[name="problemNameMode"]:checked').value;
-    localStorage.setItem(PROBLEM_NAME_MODE_KEY, selectedMode);
-    showCustomDialog("\u9898\u76EE\u540D\u79F0\u8BBE\u7F6E\u5DF2\u4FDD\u5B58\uFF01");
-  });
-  const ojTemplateSelect = settingsCard.querySelector("#ojTemplateSelect");
-  const dynamicDomainInput = settingsCard.querySelector("#dynamicDomainInput");
-  const addDynamicDomainBtn = settingsCard.querySelector("#addDynamicDomainBtn");
-  const dynamicDomainList = settingsCard.querySelector("#dynamicDomainList");
-  for (const domainKey in domainConfigs) {
-    const config = domainConfigs[domainKey];
-    const option = document.createElement("option");
-    option.value = domainKey;
-    option.textContent = config.ojName || domainKey;
-    ojTemplateSelect.appendChild(option);
-  }
-  async function renderDynamicDomainList() {
-    dynamicDomainList.innerHTML = "";
-    const dynamicConfigs = await window.GM_getValue(DYNAMIC_CONFIGS_STORAGE_KEY, []);
-    dynamicConfigs.forEach((item) => {
-      var _a;
-      const ojName = ((_a = domainConfigs[item.ojTemplateKey]) === null || _a === void 0 ? void 0 : _a.ojName) || "\u672A\u77E5\u6A21\u677F";
-      const listItem = document.createElement("li");
-      listItem.style.cssText = `
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 10px 0;
-                border-bottom: 1px dashed #eee;
-                font-size: 16px;
-            `;
-      listItem.innerHTML = `
-                <span><strong>${item.domain}</strong> (\u6A21\u677F: ${ojName})</span>
-                <button data-domain="${item.domain}" style="padding: 6px 12px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.2s ease;">
-                            \u79FB\u9664
-                        </button>
-                    `;
-      dynamicDomainList.appendChild(listItem);
-    });
-    dynamicDomainList.querySelectorAll("button").forEach((button) => {
-      button.addEventListener("click", async (event) => {
-        const targetButton = event.target;
-        const domainToRemove = targetButton.dataset.domain;
-        if (domainToRemove && confirm(`\u786E\u5B9A\u8981\u79FB\u9664\u57DF\u540D ${domainToRemove} \u5417\uFF1F`)) {
-          let currentDynamicConfigs = await window.GM_getValue(DYNAMIC_CONFIGS_STORAGE_KEY, []);
-          currentDynamicConfigs = currentDynamicConfigs.filter((item) => item.domain !== domainToRemove);
-          await window.GM_setValue(DYNAMIC_CONFIGS_STORAGE_KEY, currentDynamicConfigs);
-          showCustomDialog(`\u57DF\u540D ${domainToRemove} \u5DF2\u79FB\u9664\u3002`);
-          renderDynamicDomainList();
-        }
-      });
-    });
-  }
-  addDynamicDomainBtn.addEventListener("click", async () => {
-    const domain = dynamicDomainInput.value.trim();
-    const selectedOjTemplateKey = ojTemplateSelect.value;
-    if (!domain) {
-      showCustomDialog("\u8BF7\u8F93\u5165\u57DF\u540D\uFF01");
-      return;
-    }
-    if (!selectedOjTemplateKey) {
-      showCustomDialog("\u8BF7\u9009\u62E9\u4E00\u4E2A OJ \u6A21\u677F\uFF01");
-      return;
-    }
-    const domainRegex = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!domainRegex.test(domain)) {
-      showCustomDialog("\u8BF7\u8F93\u5165\u6709\u6548\u7684\u57DF\u540D\u683C\u5F0F (\u4F8B\u5982: example.com)");
-      return;
-    }
-    const configToSave = domainConfigs[selectedOjTemplateKey];
-    if (configToSave) {
-      let currentDynamicConfigs = await window.GM_getValue(DYNAMIC_CONFIGS_STORAGE_KEY, []);
-      if (currentDynamicConfigs.some((item) => item.domain === domain)) {
-        showCustomDialog(`\u57DF\u540D ${domain} \u5DF2\u5B58\u5728\uFF0C\u8BF7\u52FF\u91CD\u590D\u6DFB\u52A0\u3002`);
-        return;
-      }
-      currentDynamicConfigs.push({
-        domain,
-        ojTemplateKey: selectedOjTemplateKey
-      });
-      await window.GM_setValue(DYNAMIC_CONFIGS_STORAGE_KEY, currentDynamicConfigs);
-      showCustomDialog(`\u57DF\u540D ${domain} \u5DF2\u6210\u529F\u6DFB\u52A0\uFF0C\u4F7F\u7528 ${configToSave.ojName} \u6A21\u677F\u3002`);
-      dynamicDomainInput.value = "";
-      ojTemplateSelect.value = "";
-      renderDynamicDomainList();
-    } else {
-      showCustomDialog("\u9009\u62E9\u7684 OJ \u6A21\u677F\u65E0\u6548\u3002");
-    }
-  });
-  renderDynamicDomainList();
-}
-
-// dist/dynamicDomainHandler.js
-var DYNAMIC_CONFIGS_STORAGE_KEY2 = "oicpp_dynamic_configs";
-async function handleDynamicDomainConfig() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const enableParam = urlParams.get("enable");
-  const ojParam = urlParams.get("oj");
-  if (window.location.pathname === "/oicpp-settings") {
-    if (enableParam === "1" && ojParam) {
-      const currentHostname2 = window.location.hostname;
-      const configToCopy = domainConfigs[ojParam];
-      if (configToCopy) {
-        let currentDynamicConfigs = await window.GM_getValue(DYNAMIC_CONFIGS_STORAGE_KEY2, []);
-        if (currentDynamicConfigs.some((item) => item.domain === currentHostname2)) {
-          alert(`\u57DF\u540D ${currentHostname2} \u5DF2\u5B58\u5728\uFF0C\u8BF7\u52FF\u91CD\u590D\u6DFB\u52A0\u3002`);
-        } else {
-          currentDynamicConfigs.push({
-            domain: currentHostname2,
-            ojTemplateKey: ojParam
-          });
-          await window.GM_setValue(DYNAMIC_CONFIGS_STORAGE_KEY2, currentDynamicConfigs);
-          alert(`\u5DF2\u5C06\u5F53\u524D\u57DF\u540D ${currentHostname2} \u6DFB\u52A0\u5230 OICPP \u811A\u672C\u8303\u56F4\uFF0C\u5E76\u4F7F\u7528 ${ojParam} \u7684\u914D\u7F6E\u3002`);
-        }
-        window.location.href = window.location.origin + "/oicpp-settings";
-        return true;
-      } else {
-        alert(`\u672A\u627E\u5230\u540D\u4E3A ${ojParam} \u7684 OJ \u914D\u7F6E\u3002`);
-      }
-    }
-    renderSettingsPage();
-    return true;
-  }
-  const currentHostname = window.location.hostname;
-  const dynamicConfigs = await window.GM_getValue(DYNAMIC_CONFIGS_STORAGE_KEY2, []);
-  const matchedConfig = dynamicConfigs.find((item) => item.domain === currentHostname);
-  if (matchedConfig) {
-    const ojTemplateKey = matchedConfig.ojTemplateKey;
-    const configFromTemplate = domainConfigs[ojTemplateKey];
-    if (configFromTemplate) {
-      domainConfigs[currentHostname] = {
-        ...configFromTemplate,
-        // 确保 extract 函数被正确引用
-        extract: configFromTemplate.extract
-      };
-      console.log(`OICPP SampleTester: \u5DF2\u52A0\u8F7D\u5E76\u5E94\u7528\u52A8\u6001\u914D\u7F6E\u7528\u4E8E ${currentHostname} (\u6A21\u677F: ${ojTemplateKey})\u3002`);
-    } else {
-      console.error(`OICPP SampleTester: \u52A8\u6001\u914D\u7F6E\u4E2D\u5F15\u7528\u7684 OJ \u6A21\u677F ${ojTemplateKey} \u65E0\u6548\u3002`);
-      let updatedDynamicConfigs = dynamicConfigs.filter((item) => item.domain !== currentHostname);
-      await window.GM_setValue(DYNAMIC_CONFIGS_STORAGE_KEY2, updatedDynamicConfigs);
-    }
-  }
-  return false;
-}
-
-// dist/main.js
+// dist/checkUpdate.js
 async function checkUpdate() {
   const lastCheckTime = parseInt(localStorage.getItem(LOCAL_STORAGE_LAST_CHECK_TIME) || "0");
   const now = Date.now();
@@ -1800,17 +1632,11 @@ async function checkUpdate() {
     }
   });
 }
-(async function() {
+
+// dist/main.js
+(function() {
   "use strict";
   console.log("OICPP SampleTester: \u6CB9\u7334\u811A\u672C\u5DF2\u52A0\u8F7D\u3002");
-  if (await handleDynamicDomainConfig()) {
-    return;
-  }
-  const currentHostname = window.location.hostname;
-  if (!domainConfigs[currentHostname]) {
-    console.log(`OICPP SampleTester: \u5F53\u524D\u57DF\u540D ${currentHostname} \u6CA1\u6709\u914D\u7F6E\uFF0C\u8DF3\u8FC7 UI \u521D\u59CB\u5316\u548C\u66F4\u65B0\u68C0\u67E5\u3002`);
-    return;
-  }
   initializeUI();
   checkUpdate();
 })();
