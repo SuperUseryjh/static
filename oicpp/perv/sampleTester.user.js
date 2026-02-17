@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OICPP sampleTester
 // @namespace    https://oicpp.mywwzh.top/
-// @version      1.2.6-alpha1
+// @version      1.2.6-alpha2
 // @description  从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本
 // @author       Mr_Onion & mywwzh
 // @match        *://*/*
@@ -1594,7 +1594,7 @@ async function handleDynamicDomainConfig() {
   const urlParams = new URLSearchParams(window.location.search);
   const enableParam = urlParams.get("enable");
   const ojParam = urlParams.get("oj");
-  if (window.location.pathname === "/oicpp-settings") {
+  if (window.location.pathname.endsWith("/oicpp-settings") || window.location.pathname.endsWith("/oicpp-settings/")) {
     if (enableParam === "1" && ojParam) {
       const currentHostname2 = window.location.hostname;
       const configToCopy = domainConfigs[ojParam];
