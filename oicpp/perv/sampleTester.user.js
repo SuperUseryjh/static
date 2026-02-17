@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OICPP sampleTester
 // @namespace    https://oicpp.mywwzh.top/
-// @version      1.2.4-alpha1
+// @version      1.2.4-alpha2
 // @description  从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本
 // @author       Mr_Onion & mywwzh
 // @match        https://www.luogu.com.cn/*
@@ -19,7 +19,7 @@
 // @connect      http://127.0.0.1:20030
 // @connect      127.0.0.1
 // ==/UserScript==
-const SCRIPT_VERSION = "1.2.4-alpha1";
+const SCRIPT_VERSION = "1.2.4-alpha2";
 
 // dist/constants.js
 var API_URL = "http://127.0.0.1:20030/createNewProblem";
@@ -1135,32 +1135,17 @@ function createStateSelectionPanel(currentToggleBtn, config, setupHtojButton, se
         gap: 8px;
     `;
   const hostname = window.location.hostname;
-  const setupButtonState = (state) => {
+  const setupButtonState = () => {
     if (hostname === "htoj.com.cn") {
-      setupHtojButton(state);
+      setupHtojButton();
     } else if (hostname === "www.luogu.com.cn" || hostname === "luogu.com.cn") {
-      setupLuoguButton(state);
+      setupLuoguButton();
     } else if (hostname === "atcoder.jp") {
-      setupAtcoderButton(state);
+      setupAtcoderButton();
     } else if (hostname === "codeforces.com") {
-      setupCodeforcesButton(state);
+      setupCodeforcesButton();
     }
   };
-  const fixedBtn = document.createElement("button");
-  fixedBtn.textContent = "\u5207\u6362\u5230\u56FA\u5B9A\u72B6\u6001";
-  fixedBtn.style.cssText = `
-        background-color: #28a745;
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-    `;
-  fixedBtn.addEventListener("click", () => {
-    localStorage.setItem(config.buttonStateKey, "fixed");
-    setupButtonState("fixed");
-    panel.remove();
-  });
   const floatingBtn = document.createElement("button");
   floatingBtn.textContent = "\u5207\u6362\u5230\u60AC\u6D6E\u72B6\u6001";
   floatingBtn.style.cssText = `
@@ -1173,10 +1158,9 @@ function createStateSelectionPanel(currentToggleBtn, config, setupHtojButton, se
     `;
   floatingBtn.addEventListener("click", () => {
     localStorage.setItem(config.buttonStateKey, "floating");
-    setupButtonState("floating");
+    setupButtonState();
     panel.remove();
   });
-  panel.appendChild(fixedBtn);
   panel.appendChild(floatingBtn);
   document.body.appendChild(panel);
   const btnRect = currentToggleBtn.getBoundingClientRect();
@@ -1192,16 +1176,12 @@ function initializeUI() {
   controlBtn.addEventListener("click", createProblemNameSettingsPanel);
   let panel = document.getElementById(PANEL_ID);
   let toggleBtn = document.getElementById(TOGGLE_BTN_ID);
-  const setupHtojButton = (state) => {
+  const setupHtojButton = () => {
     let existingBtn = document.getElementById(TOGGLE_BTN_ID);
     if (existingBtn) {
       existingBtn.remove();
     }
-    let toggleBtn2;
-    if (state === "fixed") {
-      console.log("OICPP SampleTester: initializeUI - HTOJ \u6309\u94AE (\u56FA\u5B9A) \u5DF2\u505C\u7528\uFF0C\u5207\u6362\u5230\u60AC\u6D6E\u6309\u94AE\u3002");
-    }
-    toggleBtn2 = createToggleButtonUI();
+    const toggleBtn2 = createToggleButtonUI();
     const savedRight = localStorage.getItem(LOCAL_STORAGE_POS_X);
     const savedTop = localStorage.getItem(LOCAL_STORAGE_POS_Y);
     if (savedRight !== null && savedTop !== null) {
@@ -1233,301 +1213,107 @@ function initializeUI() {
     });
     console.log("OICPP SampleTester: initializeUI - HTOJ \u6309\u94AE (\u60AC\u6D6E) \u5DF2\u63D2\u5165\u3002");
   };
-  const setupLuoguButton = (state) => {
+  const setupLuoguButton = () => {
     let existingBtn = document.getElementById(TOGGLE_BTN_ID);
     if (existingBtn) {
       existingBtn.remove();
     }
-    let toggleBtn2;
-    if (state === "fixed") {
-      const findAndInsertFixedButton = () => {
-        let targetElement = document.querySelector("div.nav-search");
-        if (targetElement) {
-          const parentDiv = targetElement.parentElement;
-          if (parentDiv) {
-            parentDiv.style.display = "flex";
-            parentDiv.style.alignItems = "center";
-            toggleBtn2 = document.createElement("button");
-            toggleBtn2.id = TOGGLE_BTN_ID;
-            toggleBtn2.innerHTML = '\u53D1\u9001\u81F3 OICPP <span id="cooldownCountdown" style="display:none; margin-left: 5px;"></span>';
-            toggleBtn2.title = "\u6293\u53D6\u6837\u4F8B\u5E76\u53D1\u9001\u5230 OICPP";
-            toggleBtn2.style.cssText = `
-                            background-color: #007bff;
-                            color: white;
-                            border: none;
-                            padding: 8px 10px;
-                            border-radius: 4px;
-                            z-index: 10001;
-                            cursor: pointer;
-                            font-size: 18px;
-                            line-height: 1;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            margin-right: 10px;
-                        `;
-            targetElement.before(toggleBtn2);
-            console.log("OICPP SampleTester: initializeUI - Luogu \u6309\u94AE (\u56FA\u5B9A) \u5DF2\u63D2\u5165\u3002");
-            toggleBtn2.addEventListener("click", (e) => {
-              if (e.ctrlKey) {
-                e.preventDefault();
-                createStateSelectionPanel(toggleBtn2, config, setupHtojButton, setupLuoguButton, setupAtcoderButton, setupCodeforcesButton);
-              } else {
-                handleToggleButtonClick(config);
-              }
-            });
-            return true;
-          }
-        }
-        return false;
-      };
-      if (!findAndInsertFixedButton()) {
-        const observer = new MutationObserver((mutations, obs) => {
-          console.log("OICPP SampleTester: MutationObserver - DOM \u53D8\u5316\u68C0\u6D4B (Luogu \u56FA\u5B9A\u72B6\u6001)\u3002");
-          if (findAndInsertFixedButton()) {
-            obs.disconnect();
-          } else {
-            console.log("OICPP SampleTester: initializeUI - \u4ECD\u5728\u7B49\u5F85 Luogu \u76EE\u6807\u5143\u7D20 (\u56FA\u5B9A\u72B6\u6001)...");
-          }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-      }
+    const toggleBtn2 = createToggleButtonUI();
+    const savedRight = localStorage.getItem(LOCAL_STORAGE_POS_X);
+    const savedTop = localStorage.getItem(LOCAL_STORAGE_POS_Y);
+    if (savedRight !== null && savedTop !== null) {
+      toggleBtn2.style.right = `${parseFloat(savedRight)}px`;
+      toggleBtn2.style.top = `${parseFloat(savedTop)}px`;
+      console.log(`OICPP SampleTester: \u5DF2\u52A0\u8F7D\u6309\u94AE\u4F4D\u7F6E (Luogu \u60AC\u6D6E): right=${savedRight}, top=${savedTop}`);
     } else {
-      toggleBtn2 = createToggleButtonUI();
-      const savedRight = localStorage.getItem(LOCAL_STORAGE_POS_X);
-      const savedTop = localStorage.getItem(LOCAL_STORAGE_POS_Y);
-      if (savedRight !== null && savedTop !== null) {
-        toggleBtn2.style.right = `${parseFloat(savedRight)}px`;
-        toggleBtn2.style.top = `${parseFloat(savedTop)}px`;
-        console.log(`OICPP SampleTester: \u5DF2\u52A0\u8F7D\u6309\u94AE\u4F4D\u7F6E (Luogu \u60AC\u6D6E): right=${savedRight}, top=${savedTop}`);
-      } else {
-        toggleBtn2.style.right = "10px";
-        toggleBtn2.style.top = "10px";
-        console.log("OICPP SampleTester: \u5DF2\u8BBE\u7F6E\u9ED8\u8BA4\u6309\u94AE\u4F4D\u7F6E (Luogu \u60AC\u6D6E)\u3002");
-      }
-      const toggleBtnDraggable = makeDraggable(toggleBtn2, toggleBtn2);
-      toggleBtn2.addEventListener("click", (e) => {
-        if (e.ctrlKey) {
-          e.preventDefault();
-          createStateSelectionPanel(toggleBtn2, config, setupHtojButton, setupLuoguButton, setupAtcoderButton, setupCodeforcesButton);
-        } else if (toggleBtnDraggable.getIsMoved()) {
-          e.preventDefault();
-          console.log("OICPP SampleTester: initializeUI - \u5207\u6362\u6309\u94AE\u88AB\u62D6\u52A8\uFF0C\u963B\u6B62\u70B9\u51FB\u4E8B\u4EF6 (Luogu)\u3002");
-        } else {
-          handleToggleButtonClick(config);
-        }
-      });
-      console.log("OICPP SampleTester: initializeUI - Luogu \u6309\u94AE (\u60AC\u6D6E) \u5DF2\u63D2\u5165\u3002");
+      toggleBtn2.style.right = "10px";
+      toggleBtn2.style.top = "10px";
+      console.log("OICPP SampleTester: \u5DF2\u8BBE\u7F6E\u9ED8\u8BA4\u6309\u94AE\u4F4D\u7F6E (Luogu \u60AC\u6D6E)\u3002");
     }
+    const toggleBtnDraggable = makeDraggable(toggleBtn2, toggleBtn2);
+    toggleBtn2.addEventListener("click", (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        createStateSelectionPanel(toggleBtn2, config, setupHtojButton, setupLuoguButton, setupAtcoderButton, setupCodeforcesButton);
+      } else if (toggleBtnDraggable.getIsMoved()) {
+        e.preventDefault();
+        console.log("OICPP SampleTester: initializeUI - \u5207\u6362\u6309\u94AE\u88AB\u62D6\u52A8\uFF0C\u963B\u6B62\u70B9\u51FB\u4E8B\u4EF6 (Luogu)\u3002");
+      } else {
+        handleToggleButtonClick(config);
+      }
+    });
+    console.log("OICPP SampleTester: initializeUI - Luogu \u6309\u94AE (\u60AC\u6D6E) \u5DF2\u63D2\u5165\u3002");
   };
-  const setupAtcoderButton = (state) => {
+  const setupAtcoderButton = () => {
     let existingBtn = document.getElementById(TOGGLE_BTN_ID);
     if (existingBtn) {
       existingBtn.remove();
     }
-    let toggleBtn2;
-    if (state === "fixed") {
-      const findAndInsertFixedButton = () => {
-        let targetElement = document.querySelector("li.dropdown");
-        if (targetElement) {
-          const parentDiv = targetElement.parentElement;
-          if (parentDiv) {
-            parentDiv.style.display = "flex";
-            parentDiv.style.alignItems = "center";
-            toggleBtn2 = document.createElement("button");
-            toggleBtn2.id = TOGGLE_BTN_ID;
-            toggleBtn2.innerHTML = '\u53D1\u9001\u81F3 OICPP <span id="cooldownCountdown" style="display:none; margin-left: 5px;"></span>';
-            toggleBtn2.title = "\u6293\u53D6\u6837\u4F8B\u5E76\u53D1\u9001\u5230 OICPP";
-            toggleBtn2.style.cssText = `
-                            background-color: #007bff;
-                            color: white;
-                            border: none;
-                            padding: 8px 10px;
-                            border-radius: 4px;
-                            z-index: 10001;
-                            cursor: pointer;
-                            font-size: 18px;
-                            line-height: 1;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            margin-right: 10px;
-                        `;
-            targetElement.before(toggleBtn2);
-            console.log("OICPP SampleTester: initializeUI - Atcoder \u6309\u94AE (\u56FA\u5B9A) \u5DF2\u63D2\u5165\u3002");
-            toggleBtn2.addEventListener("click", (e) => {
-              if (e.ctrlKey) {
-                e.preventDefault();
-                createStateSelectionPanel(toggleBtn2, config, setupHtojButton, setupLuoguButton, setupAtcoderButton, setupCodeforcesButton);
-              } else {
-                handleToggleButtonClick(config);
-              }
-            });
-            return true;
-          }
-        }
-        return false;
-      };
-      if (!findAndInsertFixedButton()) {
-        const observer = new MutationObserver((mutations, obs) => {
-          console.log("OICPP SampleTester: MutationObserver - DOM \u53D8\u5316\u68C0\u6D4B (Atcoder \u56FA\u5B9A\u72B6\u6001)\u3002");
-          if (findAndInsertFixedButton()) {
-            obs.disconnect();
-          } else {
-            console.log("OICPP SampleTester: initializeUI - \u4ECD\u5728\u7B49\u5F85 Atcoder \u76EE\u6807\u5143\u7D20 (\u56FA\u5B9A\u72B6\u6001)...");
-          }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-      }
+    const toggleBtn2 = createToggleButtonUI();
+    const savedRight = localStorage.getItem(LOCAL_STORAGE_POS_X);
+    const savedTop = localStorage.getItem(LOCAL_STORAGE_POS_Y);
+    if (savedRight !== null && savedTop !== null) {
+      toggleBtn2.style.right = `${parseFloat(savedRight)}px`;
+      toggleBtn2.style.top = `${parseFloat(savedTop)}px`;
+      console.log(`OICPP SampleTester: \u5DF2\u52A0\u8F7D\u6309\u94AE\u4F4D\u7F6E (Atcoder \u60AC\u6D6E): right=${savedRight}, top=${savedTop}`);
     } else {
-      toggleBtn2 = createToggleButtonUI();
-      const savedRight = localStorage.getItem(LOCAL_STORAGE_POS_X);
-      const savedTop = localStorage.getItem(LOCAL_STORAGE_POS_Y);
-      if (savedRight !== null && savedTop !== null) {
-        toggleBtn2.style.right = `${parseFloat(savedRight)}px`;
-        toggleBtn2.style.top = `${parseFloat(savedTop)}px`;
-        console.log(`OICPP SampleTester: \u5DF2\u52A0\u8F7D\u6309\u94AE\u4F4D\u7F6E (Atcoder \u60AC\u6D6E): right=${savedRight}, top=${savedTop}`);
-      } else {
-        toggleBtn2.style.right = "10px";
-        toggleBtn2.style.top = "10px";
-        console.log("OICPP SampleTester: \u5DF2\u8BBE\u7F6E\u9ED8\u8BA4\u6309\u94AE\u4F4D\u7F6E (\u60AC\u6D6E)\u3002");
-      }
-      const toggleBtnDraggable = makeDraggable(toggleBtn2, toggleBtn2);
-      toggleBtn2.addEventListener("click", (e) => {
-        if (e.ctrlKey) {
-          e.preventDefault();
-          createStateSelectionPanel(toggleBtn2, config, setupHtojButton, setupLuoguButton, setupAtcoderButton, setupCodeforcesButton);
-        } else if (toggleBtnDraggable.getIsMoved()) {
-          e.preventDefault();
-          console.log("OICPP SampleTester: initializeUI - \u5207\u6362\u6309\u94AE\u88AB\u62D6\u52A8\uFF0C\u963B\u6B62\u70B9\u51FB\u4E8B\u4EF6 (Atcoder)\u3002");
-        } else {
-          handleToggleButtonClick(config);
-        }
-      });
-      console.log("OICPP SampleTester: initializeUI - Atcoder \u6309\u94AE (\u60AC\u6D6E) \u5DF2\u63D2\u5165\u3002");
+      toggleBtn2.style.right = "10px";
+      toggleBtn2.style.top = "10px";
+      console.log("OICPP SampleTester: \u5DF2\u8BBE\u7F6E\u9ED8\u8BA4\u6309\u94AE\u4F4D\u7F6E (\u60AC\u6D6E)\u3002");
     }
+    const toggleBtnDraggable = makeDraggable(toggleBtn2, toggleBtn2);
+    toggleBtn2.addEventListener("click", (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        createStateSelectionPanel(toggleBtn2, config, setupHtojButton, setupLuoguButton, setupAtcoderButton, setupCodeforcesButton);
+      } else if (toggleBtnDraggable.getIsMoved()) {
+        e.preventDefault();
+        console.log("OICPP SampleTester: initializeUI - \u5207\u6362\u6309\u94AE\u88AB\u62D6\u52A8\uFF0C\u963B\u6B62\u70B9\u51FB\u4E8B\u4EF6 (Atcoder)\u3002");
+      } else {
+        handleToggleButtonClick(config);
+      }
+    });
+    console.log("OICPP SampleTester: initializeUI - Atcoder \u6309\u94AE (\u60AC\u6D6E) \u5DF2\u63D2\u5165\u3002");
   };
-  const setupCodeforcesButton = (state) => {
+  const setupCodeforcesButton = () => {
     let existingBtn = document.getElementById(TOGGLE_BTN_ID);
     if (existingBtn) {
       existingBtn.remove();
     }
-    let toggleBtn2;
-    if (state === "fixed") {
-      const findAndInsertFixedButton = () => {
-        let targetElement = document.querySelector("div.lang-chooser");
-        if (targetElement) {
-          const parentDiv = targetElement.parentElement;
-          if (parentDiv) {
-            parentDiv.style.display = "flex";
-            parentDiv.style.alignItems = "center";
-            toggleBtn2 = document.createElement("button");
-            toggleBtn2.id = TOGGLE_BTN_ID;
-            toggleBtn2.innerHTML = '\u53D1\u9001\u81F3 OICPP <span id="cooldownCountdown" style="display:none; margin-left: 5px;"></span>';
-            toggleBtn2.title = "\u6293\u53D6\u6837\u4F8B\u5E76\u53D1\u9001\u5230 OICPP";
-            toggleBtn2.style.cssText = `
-                            background-color: #007bff;
-                            color: white;
-                            border: none;
-                            padding: 8px 10px;
-                            border-radius: 4px;
-                            z-index: 10001;
-                            cursor: pointer;
-                            font-size: 18px;
-                            line-height: 1;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            margin-right: 10px;
-                        `;
-            const buttonWrapper = document.createElement("div");
-            buttonWrapper.style.cssText = `
-                            display: inline-block;
-                            margin-right: 10px;
-                        `;
-            buttonWrapper.appendChild(toggleBtn2);
-            targetElement.prepend(buttonWrapper);
-            console.log("OICPP SampleTester: initializeUI - Codeforces \u6309\u94AE (\u56FA\u5B9A) \u5DF2\u63D2\u5165\u3002");
-            toggleBtn2.addEventListener("click", (e) => {
-              if (e.ctrlKey) {
-                e.preventDefault();
-                createStateSelectionPanel(toggleBtn2, config, setupHtojButton, setupLuoguButton, setupAtcoderButton, setupCodeforcesButton);
-              } else {
-                handleToggleButtonClick(config);
-              }
-            });
-            return true;
-          }
-        }
-        return false;
-      };
-      if (!findAndInsertFixedButton()) {
-        const observer = new MutationObserver((mutations, obs) => {
-          console.log("OICPP SampleTester: MutationObserver - DOM \u53D8\u5316\u68C0\u6D4B (Codeforces \u56FA\u5B9A\u72B6\u6001)\u3002");
-          if (findAndInsertFixedButton()) {
-            obs.disconnect();
-          } else {
-            console.log("OICPP SampleTester: initializeUI - \u4ECD\u5728\u7B49\u5F85 Codeforces \u76EE\u6807\u5143\u7D20 (\u56FA\u5B9A\u72B6\u6001)...");
-          }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-      }
+    const toggleBtn2 = createToggleButtonUI();
+    const savedRight = localStorage.getItem(LOCAL_STORAGE_POS_X);
+    const savedTop = localStorage.getItem(LOCAL_STORAGE_POS_Y);
+    if (savedRight !== null && savedTop !== null) {
+      toggleBtn2.style.right = `${parseFloat(savedRight)}px`;
+      toggleBtn2.style.top = `${parseFloat(savedTop)}px`;
+      console.log(`OICPP SampleTester: \u5DF2\u52A0\u8F7D\u6309\u94AE\u4F4D\u7F6E (Codeforces \u60AC\u6D6E): right=${savedRight}, top=${savedTop}`);
     } else {
-      toggleBtn2 = createToggleButtonUI();
-      const savedRight = localStorage.getItem(LOCAL_STORAGE_POS_X);
-      const savedTop = localStorage.getItem(LOCAL_STORAGE_POS_Y);
-      if (savedRight !== null && savedTop !== null) {
-        toggleBtn2.style.right = `${parseFloat(savedRight)}px`;
-        toggleBtn2.style.top = `${parseFloat(savedTop)}px`;
-        console.log(`OICPP SampleTester: \u5DF2\u52A0\u8F7D\u6309\u94AE\u4F4D\u7F6E (Codeforces \u60AC\u6D6E): right=${savedRight}, top=${savedTop}`);
-      } else {
-        toggleBtn2.style.right = "10px";
-        toggleBtn2.style.top = "10px";
-        console.log("OICPP SampleTester: \u5DF2\u8BBE\u7F6E\u9ED8\u8BA4\u6309\u94AE\u4F4D\u7F6E (\u60AC\u6D6E)\u3002");
-      }
-      const toggleBtnDraggable = makeDraggable(toggleBtn2, toggleBtn2);
-      toggleBtn2.addEventListener("click", (e) => {
-        if (e.ctrlKey) {
-          e.preventDefault();
-          createStateSelectionPanel(toggleBtn2, config, setupHtojButton, setupLuoguButton, setupAtcoderButton, setupCodeforcesButton);
-        } else if (toggleBtnDraggable.getIsMoved()) {
-          e.preventDefault();
-          console.log("OICPP SampleTester: initializeUI - \u5207\u6362\u6309\u94AE\u88AB\u62D6\u52A8\uFF0C\u963B\u6B62\u70B9\u51FB\u4E8B\u4EF6 (Codeforces)\u3002");
-        } else {
-          handleToggleButtonClick(config);
-        }
-      });
-      console.log("OICPP SampleTester: initializeUI - Codeforces \u6309\u94AE (\u60AC\u6D6E) \u5DF2\u63D2\u5165\u3002");
+      toggleBtn2.style.right = "10px";
+      toggleBtn2.style.top = "10px";
+      console.log("OICPP SampleTester: \u5DF2\u8BBE\u7F6E\u9ED8\u8BA4\u6309\u94AE\u4F4D\u7F6E (\u60AC\u6D6E)\u3002");
     }
+    const toggleBtnDraggable = makeDraggable(toggleBtn2, toggleBtn2);
+    toggleBtn2.addEventListener("click", (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        createStateSelectionPanel(toggleBtn2, config, setupHtojButton, setupLuoguButton, setupAtcoderButton, setupCodeforcesButton);
+      } else if (toggleBtnDraggable.getIsMoved()) {
+        e.preventDefault();
+        console.log("OICPP SampleTester: initializeUI - \u5207\u6362\u6309\u94AE\u88AB\u62D6\u52A8\uFF0C\u963B\u6B62\u70B9\u51FB\u4E8B\u4EF6 (Codeforces)\u3002");
+      } else {
+        handleToggleButtonClick(config);
+      }
+    });
+    console.log("OICPP SampleTester: initializeUI - Codeforces \u6309\u94AE (\u60AC\u6D6E) \u5DF2\u63D2\u5165\u3002");
   };
   if (hostname === "htoj.com.cn") {
-    let currentHtojButtonState = localStorage.getItem(config.buttonStateKey);
-    let htojButtonState = "fixed";
-    if (currentHtojButtonState === "fixed" || currentHtojButtonState === "floating") {
-      htojButtonState = currentHtojButtonState;
-    }
-    setupHtojButton(htojButtonState);
+    setupHtojButton();
   } else if (hostname === "www.luogu.com.cn" || hostname === "luogu.com.cn") {
-    let currentLuoguButtonState = localStorage.getItem(config.buttonStateKey);
-    let luoguButtonState = "fixed";
-    if (currentLuoguButtonState === "fixed" || currentLuoguButtonState === "floating") {
-      luoguButtonState = currentLuoguButtonState;
-    }
-    setupLuoguButton(luoguButtonState);
+    setupLuoguButton();
   } else if (hostname === "atcoder.jp") {
-    let currentAtcoderButtonState = localStorage.getItem(config.buttonStateKey);
-    let atcoderButtonState = "fixed";
-    if (currentAtcoderButtonState === "fixed" || currentAtcoderButtonState === "floating") {
-      atcoderButtonState = currentAtcoderButtonState;
-    }
-    setupAtcoderButton(atcoderButtonState);
+    setupAtcoderButton();
   } else if (hostname === "codeforces.com") {
-    let currentCodeforcesButtonState = localStorage.getItem(config.buttonStateKey);
-    let codeforcesButtonState = "fixed";
-    if (currentCodeforcesButtonState === "fixed" || currentCodeforcesButtonState === "floating") {
-      codeforcesButtonState = currentCodeforcesButtonState;
-    }
-    setupCodeforcesButton(codeforcesButtonState);
+    setupCodeforcesButton();
   } else {
     let currentToggleBtn = document.getElementById(TOGGLE_BTN_ID);
     if (!currentToggleBtn) {
