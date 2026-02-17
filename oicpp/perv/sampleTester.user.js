@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OICPP sampleTester
 // @namespace    https://oicpp.mywwzh.top/
-// @version      1.2.4-alpha7
+// @version      1.2.6-alpha1
 // @description  从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本
 // @author       Mr_Onion & mywwzh
 // @match        *://*/*
@@ -13,9 +13,8 @@
 // @connect      http://127.0.0.1:20030
 // @connect      127.0.0.1
 // @connect      onion-static.netlify.app
+// @connect      static.yaoonion.fun
 // ==/UserScript==
-const SCRIPT_VERSION = "1.2.4-alpha7";
-
 // dist/constants.js
 var API_URL = "http://127.0.0.1:20030/createNewProblem";
 var PANEL_ID = "fetchProblemPanel";
@@ -1373,9 +1372,10 @@ async function initializeUI() {
 
 // dist/checkUpdate.js
 async function checkUpdate() {
+  const currentScriptVersion = window.GM_info.script.version;
   const lastCheckTime = parseInt(localStorage.getItem(LOCAL_STORAGE_LAST_CHECK_TIME) || "0");
   const now = Date.now();
-  const isStandardVersion = /^[0-9]+\.[0-9]+\.[0-9]+$/.test(SCRIPT_VERSION);
+  const isStandardVersion = /^[0-9]+\.[0-9]+\.[0-9]+$/.test(currentScriptVersion);
   const currentCheckInterval = isStandardVersion ? UPDATE_CHECK_INTERVAL : PREVIEW_UPDATE_CHECK_INTERVAL;
   if (now - lastCheckTime < currentCheckInterval) {
     console.log("OICPP SampleTester: \u8DDD\u79BB\u4E0A\u6B21\u68C0\u67E5\u66F4\u65B0\u65F6\u95F4\u4E0D\u8DB3\uFF0C\u8DF3\u8FC7\u68C0\u67E5\u3002");
@@ -1392,8 +1392,8 @@ async function checkUpdate() {
       try {
         const remotePackageJson = JSON.parse(response.responseText);
         const remoteVersion = remotePackageJson.version;
-        if (remoteVersion && remoteVersion !== SCRIPT_VERSION) {
-          console.log(`OICPP SampleTester: \u53D1\u73B0\u65B0\u7248\u672C\uFF01\u5F53\u524D\u7248\u672C: ${SCRIPT_VERSION}, \u6700\u65B0\u7248\u672C: ${remoteVersion}`);
+        if (remoteVersion && remoteVersion !== currentScriptVersion) {
+          console.log(`OICPP SampleTester: \u53D1\u73B0\u65B0\u7248\u672C\uFF01\u5F53\u524D\u7248\u672C: ${currentScriptVersion}, \u6700\u65B0\u7248\u672C: ${remoteVersion}`);
           const userScriptFileName = "sampleTester.user.js";
           const userScriptUrl = `${STATIC_BASE_URL}/${versionPath}/${userScriptFileName}`;
           if (confirm(`OICPP SampleTester: \u53D1\u73B0\u65B0\u7248\u672C ${remoteVersion}\uFF01\u70B9\u51FB\u786E\u5B9A\u5728\u65B0\u6807\u7B7E\u9875\u4E2D\u6253\u5F00\u66F4\u65B0\u3002`)) {
