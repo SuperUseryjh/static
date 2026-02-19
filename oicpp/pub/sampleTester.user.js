@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OICPP sampleTester
 // @namespace    https://oicpp.mywwzh.top/
-// @version      1.2.5
+// @version      1.2.6
 // @description  从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本
 // @author       Mr_Onion & mywwzh
 // @match        *://*/*
@@ -13,9 +13,8 @@
 // @connect      http://127.0.0.1:20030
 // @connect      127.0.0.1
 // @connect      onion-static.netlify.app
+// @connect      static.yaoonion.fun
 // ==/UserScript==
-const SCRIPT_VERSION = "1.2.5";
-
 // dist/constants.js
 var API_URL = "http://127.0.0.1:20030/createNewProblem";
 var PANEL_ID = "fetchProblemPanel";
@@ -225,17 +224,14 @@ var domainConfigs = {
   "htoj.com.cn": {
     ojName: "Hetao",
     codeSelectors: ["div.md-editor-code pre code span.md-editor-code-block"],
-    problemNameSelector: "h3.text-xl.font-bold.text-colorText",
+    problemNameSelector: "h1.text-xl.font-bold.text-colorText",
     specialProblemNameExtraction: (element) => {
       const titleSpans = element.querySelectorAll("span");
-      if (titleSpans.length >= 2) {
-        const pid = titleSpans[0].textContent.trim();
-        const title = titleSpans[1].textContent.trim();
-        return `${pid} ${title}`.trim();
-      } else if (titleSpans.length === 1) {
-        return titleSpans[0].textContent.trim();
-      }
-      return "";
+      let problemName = "";
+      titleSpans.forEach((span) => {
+        problemName += span.textContent.trim() + " ";
+      });
+      return problemName.trim();
     },
     extract: () => {
       const rawSnippets = [];
@@ -598,20 +594,20 @@ function sendProblemToAPI(payload, statusMessageElement) {
           if (data.invalidField) {
             errorMessage += ` (\u5B57\u6BB5: ${data.invalidField})`;
           }
-          alert(errorMessage);
+          showCustomDialog(errorMessage);
           statusMessageElement.style.color = "red";
           statusMessageElement.textContent = errorMessage;
           console.error("OICPP SampleTester: sendProblemToAPI - API\u9519\u8BEF:", errorMessage, "\u6570\u636E:", data);
         }
       } catch (e) {
-        alert(`\u8BF7\u6C42\u6210\u529F\uFF0C\u4F46\u89E3\u6790\u54CD\u5E94\u5931\u8D25: ${e.message}`);
+        showCustomDialog(`\u8BF7\u6C42\u6210\u529F\uFF0C\u4F46\u89E3\u6790\u54CD\u5E94\u5931\u8D25: ${e.message}`);
         statusMessageElement.style.color = "red";
         statusMessageElement.textContent = `\u8BF7\u6C42\u6210\u529F\uFF0C\u4F46\u89E3\u6790\u54CD\u5E94\u5931\u8D25: ${e.message}`;
         console.error("OICPP SampleTester: sendProblemToAPI - JSON\u89E3\u6790\u9519\u8BEF:", e.message, "\u54CD\u5E94\u6587\u672C:", response.responseText);
       }
     },
     onerror: function(error) {
-      alert(`\u8BF7\u6C42\u5931\u8D25: ${error.statusText || error.responseText || "\u7F51\u7EDC\u9519\u8BEF"}\u3002\u8BF7\u786E\u8BA4OICPP\u662F\u5426\u6B63\u5728\u8FD0\u884C\u3002`);
+      showCustomDialog(`\u8BF7\u6C42\u5931\u8D25: ${error.statusText || error.responseText || "\u7F51\u7EDC\u9519\u8BEF"}\u3002\u8BF7\u786E\u8BA4OICPP\u662F\u5426\u6B63\u5728\u8FD0\u884C\u3002`);
       statusMessageElement.style.color = "red";
       statusMessageElement.textContent = `\u8BF7\u6C42\u5931\u8D25: ${error.statusText || error.responseText || "\u7F51\u7EDC\u9519\u8BEF"}\u3002\u8BF7\u786E\u8BA4OICPP\u662F\u5426\u6B63\u5728\u8FD0\u884C\u3002`;
       console.error("OICPP SampleTester: GM_xmlhttpRequest \u9519\u8BEF:", error);
@@ -924,7 +920,8 @@ async function startGuide(forceShow = false, storageKey = GUIDE_MAIN_PAGE_STORAG
   }
   let shouldShowGuide = true;
   if (!forceShow) {
-    shouldShowGuide = confirm("\u8C8C\u4F3C\u4F60\u662F\u7B2C\u4E00\u6B21\u4F7F\u7528 OICPP \u6837\u4F8B\u6293\u53D6\u5462\uFF0C\u8981\u770B\u770B\u65B0\u624B\u6559\u7A0B\u5417");
+    const result = await showCustomDialog("\u8C8C\u4F3C\u4F60\u662F\u7B2C\u4E00\u6B21\u4F7F\u7528 OICPP \u6837\u4F8B\u6293\u53D6\u5462\uFF0C\u8981\u770B\u770B\u65B0\u624B\u6559\u7A0B\u5417", "", false, "", true);
+    shouldShowGuide = result === "ok";
   }
   if (!shouldShowGuide) {
     await skipGuide(storageKey);
@@ -1031,7 +1028,7 @@ function clampButtonPosition(button, currentRight, currentTop) {
   newTop = Math.max(10, newTop);
   return { right: newRight, top: newTop };
 }
-function showCustomDialog(message, inputValue = "", showInput = false, inputPlaceholder = "") {
+function showCustomDialog(message, inputValue = "", showInput = false, inputPlaceholder = "", showCancelButton = false) {
   return new Promise((resolve) => {
     let dialogOverlay = document.getElementById("customDialogOverlay");
     if (!dialogOverlay) {
@@ -1069,7 +1066,7 @@ function showCustomDialog(message, inputValue = "", showInput = false, inputPlac
             ${showInput ? `<input type="text" id="customDialogInput" value="${inputValue}" placeholder="${inputPlaceholder}" style="width: calc(100% - 20px); padding: 8px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;">` : ""}
             <div style="display: flex; justify-content: center; gap: 10px;">
                 <button id="customDialogOkBtn" style="padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">\u786E\u5B9A</button>
-                ${showInput ? `<button id="customDialogCancelBtn" style="padding: 8px 15px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">\u53D6\u6D88</button>` : ""}
+                ${showCancelButton || showInput ? `<button id="customDialogCancelBtn" style="padding: 8px 15px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">\u53D6\u6D88</button>` : ""}
             </div>
         `;
     dialogOverlay.appendChild(dialogBox);
@@ -1094,7 +1091,7 @@ function showCustomDialog(message, inputValue = "", showInput = false, inputPlac
     document.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         okBtn === null || okBtn === void 0 ? void 0 : okBtn.click();
-      } else if (e.key === "Escape") {
+      } else if (e.key === "Escape" && cancelBtn) {
         cancelBtn === null || cancelBtn === void 0 ? void 0 : cancelBtn.click();
       }
     }, { once: true });
@@ -1373,9 +1370,10 @@ async function initializeUI() {
 
 // dist/checkUpdate.js
 async function checkUpdate() {
+  const currentScriptVersion = window.GM_info.script.version;
   const lastCheckTime = parseInt(localStorage.getItem(LOCAL_STORAGE_LAST_CHECK_TIME) || "0");
   const now = Date.now();
-  const isStandardVersion = /^[0-9]+\.[0-9]+\.[0-9]+$/.test(SCRIPT_VERSION);
+  const isStandardVersion = /^[0-9]+\.[0-9]+\.[0-9]+$/.test(currentScriptVersion);
   const currentCheckInterval = isStandardVersion ? UPDATE_CHECK_INTERVAL : PREVIEW_UPDATE_CHECK_INTERVAL;
   if (now - lastCheckTime < currentCheckInterval) {
     console.log("OICPP SampleTester: \u8DDD\u79BB\u4E0A\u6B21\u68C0\u67E5\u66F4\u65B0\u65F6\u95F4\u4E0D\u8DB3\uFF0C\u8DF3\u8FC7\u68C0\u67E5\u3002");
@@ -1388,15 +1386,15 @@ async function checkUpdate() {
   window.GM_xmlhttpRequest({
     method: "GET",
     url: updateUrl,
-    onload: function(response) {
+    onload: async function(response) {
       try {
         const remotePackageJson = JSON.parse(response.responseText);
         const remoteVersion = remotePackageJson.version;
-        if (remoteVersion && remoteVersion !== SCRIPT_VERSION) {
-          console.log(`OICPP SampleTester: \u53D1\u73B0\u65B0\u7248\u672C\uFF01\u5F53\u524D\u7248\u672C: ${SCRIPT_VERSION}, \u6700\u65B0\u7248\u672C: ${remoteVersion}`);
+        if (remoteVersion && remoteVersion !== currentScriptVersion) {
+          console.log(`OICPP SampleTester: \u53D1\u73B0\u65B0\u7248\u672C\uFF01\u5F53\u524D\u7248\u672C: ${currentScriptVersion}, \u6700\u65B0\u7248\u672C: ${remoteVersion}`);
           const userScriptFileName = "sampleTester.user.js";
           const userScriptUrl = `${STATIC_BASE_URL}/${versionPath}/${userScriptFileName}`;
-          if (confirm(`OICPP SampleTester: \u53D1\u73B0\u65B0\u7248\u672C ${remoteVersion}\uFF01\u70B9\u51FB\u786E\u5B9A\u5728\u65B0\u6807\u7B7E\u9875\u4E2D\u6253\u5F00\u66F4\u65B0\u3002`)) {
+          if (await showCustomDialog(`OICPP SampleTester: \u53D1\u73B0\u65B0\u7248\u672C ${remoteVersion}\uFF01\u70B9\u51FB\u786E\u5B9A\u5728\u65B0\u6807\u7B7E\u9875\u4E2D\u6253\u5F00\u66F4\u65B0\u3002`, "", false, "", true) === "ok") {
             window.GM_openInTab(userScriptUrl, false);
           }
         } else {
@@ -1537,7 +1535,7 @@ function renderSettingsPage() {
       button.addEventListener("click", async (event) => {
         const targetButton = event.target;
         const domainToRemove = targetButton.dataset.domain;
-        if (domainToRemove && confirm(`\u786E\u5B9A\u8981\u79FB\u9664\u57DF\u540D ${domainToRemove} \u5417\uFF1F`)) {
+        if (domainToRemove && await showCustomDialog(`\u786E\u5B9A\u8981\u79FB\u9664\u57DF\u540D ${domainToRemove} \u5417\uFF1F`, "", false, "", true) === "ok") {
           let currentDynamicConfigs = await window.GM_getValue(DYNAMIC_CONFIGS_STORAGE_KEY, []);
           currentDynamicConfigs = currentDynamicConfigs.filter((item) => item.domain !== domainToRemove);
           await window.GM_setValue(DYNAMIC_CONFIGS_STORAGE_KEY, currentDynamicConfigs);
@@ -1594,26 +1592,26 @@ async function handleDynamicDomainConfig() {
   const urlParams = new URLSearchParams(window.location.search);
   const enableParam = urlParams.get("enable");
   const ojParam = urlParams.get("oj");
-  if (window.location.pathname === "/oicpp-settings") {
+  if (window.location.pathname.endsWith("/oicpp-settings") || window.location.pathname.endsWith("/oicpp-settings/")) {
     if (enableParam === "1" && ojParam) {
       const currentHostname2 = window.location.hostname;
       const configToCopy = domainConfigs[ojParam];
       if (configToCopy) {
         let currentDynamicConfigs = await window.GM_getValue(DYNAMIC_CONFIGS_STORAGE_KEY2, []);
         if (currentDynamicConfigs.some((item) => item.domain === currentHostname2)) {
-          alert(`\u57DF\u540D ${currentHostname2} \u5DF2\u5B58\u5728\uFF0C\u8BF7\u52FF\u91CD\u590D\u6DFB\u52A0\u3002`);
+          showCustomDialog(`\u57DF\u540D ${currentHostname2} \u5DF2\u5B58\u5728\uFF0C\u8BF7\u52FF\u91CD\u590D\u6DFB\u52A0\u3002`);
         } else {
           currentDynamicConfigs.push({
             domain: currentHostname2,
             ojTemplateKey: ojParam
           });
           await window.GM_setValue(DYNAMIC_CONFIGS_STORAGE_KEY2, currentDynamicConfigs);
-          alert(`\u5DF2\u5C06\u5F53\u524D\u57DF\u540D ${currentHostname2} \u6DFB\u52A0\u5230 OICPP \u811A\u672C\u8303\u56F4\uFF0C\u5E76\u4F7F\u7528 ${ojParam} \u7684\u914D\u7F6E\u3002`);
+          showCustomDialog(`\u5DF2\u5C06\u5F53\u524D\u57DF\u540D ${currentHostname2} \u6DFB\u52A0\u5230 OICPP \u811A\u672C\u8303\u56F4\uFF0C\u5E76\u4F7F\u7528 ${ojParam} \u7684\u914D\u7F6E\u3002`);
         }
         window.location.href = window.location.origin + "/oicpp-settings";
         return true;
       } else {
-        alert(`\u672A\u627E\u5230\u540D\u4E3A ${ojParam} \u7684 OJ \u914D\u7F6E\u3002`);
+        showCustomDialog(`\u672A\u627E\u5230\u540D\u4E3A ${ojParam} \u7684 OJ \u914D\u7F6E\u3002`);
       }
     }
     renderSettingsPage();

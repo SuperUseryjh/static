@@ -1,6 +1,6 @@
 {
   "name": "oicpp-sample-tester",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本",
   "main": "dist/fetch_tampermonkey.user.js",
   "userscript": {
@@ -21,7 +21,8 @@
     "connect": [
       "http://127.0.0.1:20030",
       "127.0.0.1",
-      "onion-static.netlify.app"
+      "onion-static.netlify.app",
+      "static.yaoonion.fun"
     ],
     "debug": true
   },
