@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OICPP sampleTester
 // @namespace    https://oicpp.mywwzh.top/
-// @version      1.2.7-alpha2
+// @version      1.2.7-alpha3
 // @description  从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本
 // @author       Mr_Onion & mywwzh
 // @match        *://*/*
@@ -512,7 +512,7 @@ var domainConfigs = {
   "vjudge.net": {
     ojName: "VJudge",
     codeSelectors: ["table.vjudge_sample tbody tr td pre"],
-    problemNameSelector: "#prob-title",
+    problemNameSelector: "#problem-title",
     extract: () => {
       const samples = [];
       const iframe = document.querySelector('iframe[src*="problem"]');
@@ -573,7 +573,7 @@ var domainConfigs = {
   "www.vjudge.net": {
     ojName: "VJudge",
     codeSelectors: ["table.vjudge_sample tbody tr td pre"],
-    problemNameSelector: "#prob-title",
+    problemNameSelector: "#problem-title",
     extract: () => {
       const samples = [];
       const iframe = document.querySelector('iframe[src*="problem"]');
