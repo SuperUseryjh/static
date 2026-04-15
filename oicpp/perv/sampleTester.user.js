@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OICPP sampleTester
 // @namespace    https://oicpp.mywwzh.top/
-// @version      1.2.7-alpha4
+// @version      1.2.7-alpha5
 // @description  从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本
 // @author       Mr_Onion & mywwzh
 // @match        *://*/*
@@ -637,11 +637,8 @@ var domainConfigs = {
     problemNameSelector: "h1.section__title",
     extract: () => {
       const rawSnippets = [];
-      document.querySelectorAll("div.row > div.code-toolbar.medium-6.columns.sample").forEach((sampleDiv) => {
-        const code = sampleDiv.querySelector("pre.syntax-hl");
-        if (code) {
-          rawSnippets.push(code.textContent.trim());
-        }
+      document.querySelectorAll("div.code-toolbar.medium-6.columns.sample pre.syntax-hl").forEach((element) => {
+        rawSnippets.push(element.textContent.trim());
       });
       let timeLimit = 1e3;
       let memoryLimit = 256;
@@ -693,11 +690,8 @@ var domainConfigs = {
     problemNameSelector: "h1.section__title",
     extract: () => {
       const rawSnippets = [];
-      document.querySelectorAll("div.row > div.code-toolbar.medium-6.columns.sample").forEach((sampleDiv) => {
-        const code = sampleDiv.querySelector("pre.syntax-hl");
-        if (code) {
-          rawSnippets.push(code.textContent.trim());
-        }
+      document.querySelectorAll("div.code-toolbar.medium-6.columns.sample pre.syntax-hl").forEach((element) => {
+        rawSnippets.push(element.textContent.trim());
       });
       let timeLimit = 1e3;
       let memoryLimit = 256;
