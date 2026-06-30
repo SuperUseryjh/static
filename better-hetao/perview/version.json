@@ -1,0 +1,41 @@
+{
+  "name": "better-hetao-userscript",
+  "version": "1.0.0-alpha1",
+  "description": "更好的核桃 OJ（Tampermonkey 插件）",
+  "main": "dist/HTOJ-better.user.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && node scripts/bundle.js && node scripts/generate-userscript.js",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.0"
+  },
+  "userscript": {
+    "name": "Better Hetao",
+    "namespace": "https://github.com/SuperUseryjh/Better-Hetao",
+    "description": "更好的核桃 OJ",
+    "author": "YaoOnio & mywwzh",
+    "match": [
+      "https://htoj.com.cn/cpp/oj/problem/detail?pid=*",
+      "https://htoj.com.cn/python/oj/problem/detail?pid=*"
+    ],
+    "grant": [
+      "GM_xmlhttpRequest",
+      "GM_getValue",
+      "GM_setValue",
+      "GM_notification",
+      "GM_info"
+    ],
+    "connect": [
+      "static.yaoonion.fun",
+      "api.htoj.com.cn",
+      "localhost"
+    ],
+    "run-at": "document-start",
+    "updateURL": "https://static.yaoonion.fun/better-hetao/${STATUS}/script.user.js",
+    "downloadURL": "https://static.yaoonion.fun/better-hetao/${STATUS}/script.user.js"
+  }
+}
