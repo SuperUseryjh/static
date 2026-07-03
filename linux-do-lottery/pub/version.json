@@ -1,11 +1,10 @@
 {
   "name": "linux-do-boost-lottery",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "从 LINUX DO  Discourse 话题选定楼层的 Boost 中抽取用户的油猴脚本",
   "main": "dist/boostLottery.user.js",
   "userscript": {
     "name": "LINUX DO Boost 抽奖",
-    "namespace": "https://github.com/linux-do-lottery",
     "description": "从 LINUX DO 话题选定楼层的 Boost 中随机抽取用户",
     "author": "YaoOnion",
     "match": [

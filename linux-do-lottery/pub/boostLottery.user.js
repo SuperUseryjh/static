@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LINUX DO Boost 抽奖
-// @namespace    https://github.com/linux-do-lottery
-// @version      1.0.0
+// @namespace    undefined
+// @version      1.0.1
 // @description  从 LINUX DO 话题选定楼层的 Boost 中随机抽取用户
 // @author       YaoOnion
 // @match        *://linux.do/t/*
@@ -23,8 +23,9 @@ var POST_SELECTOR = ".topic-post";
 var POST_ARTICLE_SELECTOR = "article.onscreen-post";
 var BOOST_LIST_SELECTOR = ".discourse-boosts__list";
 var BOOST_BUBBLE_SELECTOR = ".discourse-boosts__bubble";
+var BOOST_COOKED_SELECTOR = ".discourse-boosts__cooked";
 var BOOST_USER_SELECTOR = "a[data-user-card]";
-var STATIC_BASE_URL = "https://static.yaoonion.fun/linux-do-lottery";
+var STATIC_BASE_URL = "https://static.yourdomain.com/linux-do-lottery";
 var LOCAL_STORAGE_LAST_CHECK_TIME = "boostLotteryLastUpdateCheck";
 var UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1e3;
 var PREVIEW_UPDATE_CHECK_INTERVAL = 1 * 60 * 60 * 1e3;
@@ -302,6 +303,20 @@ var CSS = `
         font-size: 13px;
         text-align: center;
     }
+    .boost-lottery-required-string {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        font-size: 13px;
+    }
+    .boost-lottery-required-string input {
+        flex: 1;
+        padding: 6px 8px;
+        border: 1px solid var(--bl-border);
+        border-radius: var(--bl-radius-sm);
+        font-size: 13px;
+    }
     .boost-lottery-list {
         max-height: 260px;
         overflow-y: auto;
@@ -508,6 +523,10 @@ function createPanel() {
                     <span>\u62BD\u53D6\u4EBA\u6570\uFF1A</span>
                     <input type="number" id="boostLotteryWinnerCount" value="1" min="1" max="100">
                 </div>
+                <div class="boost-lottery-required-string">
+                    <span>\u5FC5\u987B\u5305\u542B\uFF1A</span>
+                    <input type="text" id="boostLotteryRequiredString" placeholder="\u697C\u5C42\u6B63\u6587\u9700\u5305\u542B\u7684\u5B57\u7B26\u4E32\uFF08\u7559\u7A7A\u4E0D\u9650\u5236\uFF09">
+                </div>
             </div>
             <div id="${POST_LIST_ID}" class="boost-lottery-list">
                 <div class="boost-lottery-list-empty">\u672A\u627E\u5230\u4EFB\u4F55\u697C\u5C42</div>
@@ -557,13 +576,14 @@ function getSelectedPostNumbers() {
   return Array.from(checkboxes).map((cb) => parseInt(cb.value, 10));
 }
 function getLotteryOptions() {
-  var _a, _b, _c, _d, _e, _f;
+  var _a, _b, _c, _d, _e, _f, _g, _h;
   const excludeDuplicates = (_b = (_a = document.getElementById("boostLotteryExcludeDuplicates")) === null || _a === void 0 ? void 0 : _a.checked) !== null && _b !== void 0 ? _b : true;
   const excludeTopicOwner = (_d = (_c = document.getElementById("boostLotteryExcludeTopicOwner")) === null || _c === void 0 ? void 0 : _c.checked) !== null && _d !== void 0 ? _d : false;
   const excludeAuthor = (_f = (_e = document.getElementById("boostLotteryExcludeAuthor")) === null || _e === void 0 ? void 0 : _e.checked) !== null && _f !== void 0 ? _f : true;
   const winnerCountInput = document.getElementById("boostLotteryWinnerCount");
   const winnerCount = Math.max(1, parseInt((winnerCountInput === null || winnerCountInput === void 0 ? void 0 : winnerCountInput.value) || "1", 10));
-  return { excludeDuplicates, excludeTopicOwner, excludeAuthor, winnerCount };
+  const requiredString = ((_h = (_g = document.getElementById("boostLotteryRequiredString")) === null || _g === void 0 ? void 0 : _g.value) === null || _h === void 0 ? void 0 : _h.trim()) || "";
+  return { excludeDuplicates, excludeTopicOwner, excludeAuthor, winnerCount, requiredString };
 }
 function renderWinners(winners) {
   const resultContainer = document.getElementById(RESULT_ID);
@@ -653,6 +673,11 @@ function extractAuthorUsername(article) {
   const usernameLink = names.querySelector("a[data-user-card]");
   return (usernameLink === null || usernameLink === void 0 ? void 0 : usernameLink.getAttribute("data-user-card")) || "";
 }
+function extractBoostMessage(bubble) {
+  var _a;
+  const cooked = bubble.querySelector(BOOST_COOKED_SELECTOR);
+  return ((_a = cooked === null || cooked === void 0 ? void 0 : cooked.innerText) === null || _a === void 0 ? void 0 : _a.trim()) || "";
+}
 function extractBoosters(article) {
   const boostList = article.querySelector(BOOST_LIST_SELECTOR);
   if (!boostList)
@@ -668,7 +693,8 @@ function extractBoosters(article) {
       return;
     const img = userLink.querySelector("img.avatar");
     const avatarUrl = (img === null || img === void 0 ? void 0 : img.src) || "";
-    boosters.push({ username, avatarUrl });
+    const message = extractBoostMessage(bubble);
+    boosters.push({ username, avatarUrl, message });
   });
   return boosters;
 }
@@ -748,9 +774,12 @@ function refreshPostList() {
 function collectCandidates(selectedPostNumbers, options) {
   const topicOwner = getTopicOwnerUsername();
   const selectedPosts = cachedPosts.filter((p) => selectedPostNumbers.includes(p.postNumber));
+  const requiredString = options.requiredString;
   let candidates = [];
   selectedPosts.forEach((post) => {
     post.boosters.forEach((booster) => {
+      if (requiredString && !booster.message.includes(requiredString))
+        return;
       if (options.excludeAuthor && booster.username === post.authorUsername)
         return;
       if (options.excludeTopicOwner && booster.username === topicOwner)
