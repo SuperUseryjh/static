@@ -1,0 +1,41 @@
+{
+  "name": "linux-do-boost-lottery",
+  "version": "1.0.0",
+  "description": "从 LINUX DO  Discourse 话题选定楼层的 Boost 中抽取用户的油猴脚本",
+  "main": "dist/boostLottery.user.js",
+  "userscript": {
+    "name": "LINUX DO Boost 抽奖",
+    "namespace": "https://github.com/linux-do-lottery",
+    "description": "从 LINUX DO 话题选定楼层的 Boost 中随机抽取用户",
+    "author": "YaoOnion",
+    "match": [
+      "*://linux.do/t/*"
+    ],
+    "grant": [
+      "GM_xmlhttpRequest",
+      "GM_openInTab",
+      "GM_info",
+      "GM_setValue",
+      "GM_getValue"
+    ],
+    "connect": [
+      "static.yaoonion.fun"
+    ]
+  },
+  "scripts": {
+    "build": "tsc && node scripts/bundle.js && node scripts/generate-userscript.js",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "userscript",
+    "discourse",
+    "linux.do",
+    "lottery",
+    "boost"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "esbuild": "^0.20.0"
+  }
+}
