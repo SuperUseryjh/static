@@ -1,6 +1,6 @@
 {
   "name": "oicpp-sample-tester",
-  "version": "1.2.6",
+  "version": "2.0.1",
   "description": "从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本",
   "main": "dist/fetch_tampermonkey.user.js",
   "userscript": {
@@ -11,7 +11,7 @@
     "match": [
       "*://*/*"
     ],
-    "grant":[
+    "grant": [
       "GM_xmlhttpRequest",
       "GM_info",
       "GM_openInTab",
@@ -19,10 +19,17 @@
       "GM_getValue"
     ],
     "connect": [
-      "http://127.0.0.1:20030",
       "127.0.0.1",
+      "127.0.0.1:20030",
+      "http://127.0.0.1",
+      "http://127.0.0.1:20030",
+      "localhost",
+      "localhost:20030",
+      "http://localhost",
+      "http://localhost:20030",
       "onion-static.netlify.app",
-      "static.yaoonion.fun"
+      "static.yaoonion.fun",
+      "*"
     ],
     "debug": true
   },
