@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OICPP sampleTester
 // @namespace    https://oicpp.mywwzh.top/
-// @version      1.2.6
+// @version      2.0.1
 // @description  从 OJ 平台获取题目样例并发送到 OICPP 的油猴脚本
 // @author       Mr_Onion & mywwzh
 // @match        *://*/*
@@ -10,10 +10,17 @@
 // @grant        GM_openInTab
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @connect      http://127.0.0.1:20030
 // @connect      127.0.0.1
+// @connect      127.0.0.1:20030
+// @connect      http://127.0.0.1
+// @connect      http://127.0.0.1:20030
+// @connect      localhost
+// @connect      localhost:20030
+// @connect      http://localhost
+// @connect      http://localhost:20030
 // @connect      onion-static.netlify.app
 // @connect      static.yaoonion.fun
+// @connect      *
 // ==/UserScript==
 // dist/constants.js
 var API_URL = "http://127.0.0.1:20030/createNewProblem";
@@ -508,25 +515,352 @@ var domainConfigs = {
       return { samples, timeLimit, memoryLimit };
     },
     buttonStateKey: "SYZOJButtonState"
+  },
+  "vjudge.net": {
+    ojName: "VJudge",
+    codeSelectors: ["table.vjudge_sample tbody tr td pre"],
+    problemNameSelector: "#problem-title",
+    extract: () => {
+      const samples = [];
+      const iframe = document.querySelector('iframe[src*="problem"]');
+      let iframeDoc = null;
+      if (iframe && iframe.contentDocument) {
+        iframeDoc = iframe.contentDocument;
+        console.log("OICPP SampleTester: VJudge - \u4ECE iframe \u4E2D\u63D0\u53D6\u6837\u4F8B");
+      }
+      const doc = iframeDoc || document;
+      const rows = doc.querySelectorAll("table.vjudge_sample tbody tr");
+      let sampleId = 1;
+      rows.forEach((row) => {
+        const tds = row.querySelectorAll("td pre");
+        if (tds.length >= 2) {
+          const inputContent = tds[0].textContent.trim();
+          const outputContent = tds[1].textContent.trim();
+          samples.push({
+            id: sampleId++,
+            input: inputContent,
+            output: outputContent,
+            timeLimit: 1e3,
+            memoryLimit: 512
+          });
+        }
+      });
+      let timeLimit = 1e3;
+      let memoryLimit = 512;
+      const timeLimitElement = doc.querySelector('div[id^="time-limit-"]');
+      if (timeLimitElement) {
+        const text = timeLimitElement.textContent;
+        const match = text.match(/(\d+\.?\d*)\s*(ms|s)/i);
+        if (match) {
+          const num = parseFloat(match[1]);
+          if (match[2].toLowerCase() === "s") {
+            timeLimit = num * 1e3;
+          } else {
+            timeLimit = num;
+          }
+        }
+      }
+      const memoryLimitElement = doc.querySelector('div[id^="memory-limit-"]');
+      if (memoryLimitElement) {
+        const text = memoryLimitElement.textContent;
+        const match = text.match(/(\d+\.?\d*)\s*(mib|mb|gb)/i);
+        if (match) {
+          const num = parseFloat(match[1]);
+          if (match[2].toLowerCase() === "gb") {
+            memoryLimit = num * 1024;
+          } else {
+            memoryLimit = num;
+          }
+        }
+      }
+      return { samples, timeLimit, memoryLimit };
+    },
+    buttonStateKey: "vjudgeButtonState"
+  },
+  "www.vjudge.net": {
+    ojName: "VJudge",
+    codeSelectors: ["table.vjudge_sample tbody tr td pre"],
+    problemNameSelector: "#problem-title",
+    extract: () => {
+      const samples = [];
+      const iframe = document.querySelector('iframe[src*="problem"]');
+      let iframeDoc = null;
+      if (iframe && iframe.contentDocument) {
+        iframeDoc = iframe.contentDocument;
+        console.log("OICPP SampleTester: VJudge - \u4ECE iframe \u4E2D\u63D0\u53D6\u6837\u4F8B");
+      }
+      const doc = iframeDoc || document;
+      const rows = doc.querySelectorAll("table.vjudge_sample tbody tr");
+      let sampleId = 1;
+      rows.forEach((row) => {
+        const tds = row.querySelectorAll("td pre");
+        if (tds.length >= 2) {
+          const inputContent = tds[0].textContent.trim();
+          const outputContent = tds[1].textContent.trim();
+          samples.push({
+            id: sampleId++,
+            input: inputContent,
+            output: outputContent,
+            timeLimit: 1e3,
+            memoryLimit: 512
+          });
+        }
+      });
+      let timeLimit = 1e3;
+      let memoryLimit = 512;
+      const timeLimitElement = doc.querySelector('div[id^="time-limit-"]');
+      if (timeLimitElement) {
+        const text = timeLimitElement.textContent;
+        const match = text.match(/(\d+\.?\d*)\s*(ms|s)/i);
+        if (match) {
+          const num = parseFloat(match[1]);
+          if (match[2].toLowerCase() === "s") {
+            timeLimit = num * 1e3;
+          } else {
+            timeLimit = num;
+          }
+        }
+      }
+      const memoryLimitElement = doc.querySelector('div[id^="memory-limit-"]');
+      if (memoryLimitElement) {
+        const text = memoryLimitElement.textContent;
+        const match = text.match(/(\d+\.?\d*)\s*(mib|mb|gb)/i);
+        if (match) {
+          const num = parseFloat(match[1]);
+          if (match[2].toLowerCase() === "gb") {
+            memoryLimit = num * 1024;
+          } else {
+            memoryLimit = num;
+          }
+        }
+      }
+      return { samples, timeLimit, memoryLimit };
+    },
+    buttonStateKey: "vjudgeButtonState"
+  },
+  "marsoj.cn": {
+    ojName: "MarsOJ",
+    codeSelectors: ["pre.syntax-hl"],
+    problemNameSelector: "h1.section__title",
+    extract: () => {
+      const rawSnippets = [];
+      document.querySelectorAll("div.code-toolbar.medium-6.columns.sample pre.syntax-hl").forEach((element) => {
+        rawSnippets.push(element.textContent.trim());
+      });
+      let timeLimit = 1e3;
+      let memoryLimit = 256;
+      const timeLimitElement = document.querySelector("span.problem__tag-item.bp3-icon-stopwatch");
+      if (timeLimitElement) {
+        const text = timeLimitElement.textContent.trim();
+        const match = text.match(/(\d+\.?\d*)\s*(ms|s)/i);
+        if (match) {
+          const num = parseFloat(match[1]);
+          if (match[2].toLowerCase() === "s") {
+            timeLimit = num * 1e3;
+          } else {
+            timeLimit = num;
+          }
+        }
+      }
+      const memoryLimitElement = document.querySelector("span.problem__tag-item.bp3-icon-comparison");
+      if (memoryLimitElement) {
+        const text = memoryLimitElement.textContent.trim();
+        const match = text.match(/(\d+\.?\d*)\s*(mib|mb|gb)/i);
+        if (match) {
+          const num = parseFloat(match[1]);
+          if (match[2].toLowerCase() === "gb") {
+            memoryLimit = num * 1024;
+          } else {
+            memoryLimit = num;
+          }
+        }
+      }
+      const samples = [];
+      for (let i = 0; i < rawSnippets.length; i += 2) {
+        const inputContent = rawSnippets[i];
+        const outputContent = rawSnippets[i + 1] || "";
+        samples.push({
+          id: i / 2 + 1,
+          input: inputContent,
+          output: outputContent,
+          timeLimit,
+          memoryLimit
+        });
+      }
+      return { samples, timeLimit, memoryLimit };
+    },
+    buttonStateKey: "marsojButtonState"
+  },
+  "www.marsoj.cn": {
+    ojName: "MarsOJ",
+    codeSelectors: ["pre.syntax-hl"],
+    problemNameSelector: "h1.section__title",
+    extract: () => {
+      const rawSnippets = [];
+      document.querySelectorAll("div.code-toolbar.medium-6.columns.sample pre.syntax-hl").forEach((element) => {
+        rawSnippets.push(element.textContent.trim());
+      });
+      let timeLimit = 1e3;
+      let memoryLimit = 256;
+      const timeLimitElement = document.querySelector("span.problem__tag-item.bp3-icon-stopwatch");
+      if (timeLimitElement) {
+        const text = timeLimitElement.textContent.trim();
+        const match = text.match(/(\d+\.?\d*)\s*(ms|s)/i);
+        if (match) {
+          const num = parseFloat(match[1]);
+          if (match[2].toLowerCase() === "s") {
+            timeLimit = num * 1e3;
+          } else {
+            timeLimit = num;
+          }
+        }
+      }
+      const memoryLimitElement = document.querySelector("span.problem__tag-item.bp3-icon-comparison");
+      if (memoryLimitElement) {
+        const text = memoryLimitElement.textContent.trim();
+        const match = text.match(/(\d+\.?\d*)\s*(mib|mb|gb)/i);
+        if (match) {
+          const num = parseFloat(match[1]);
+          if (match[2].toLowerCase() === "gb") {
+            memoryLimit = num * 1024;
+          } else {
+            memoryLimit = num;
+          }
+        }
+      }
+      const samples = [];
+      for (let i = 0; i < rawSnippets.length; i += 2) {
+        const inputContent = rawSnippets[i];
+        const outputContent = rawSnippets[i + 1] || "";
+        samples.push({
+          id: i / 2 + 1,
+          input: inputContent,
+          output: outputContent,
+          timeLimit,
+          memoryLimit
+        });
+      }
+      return { samples, timeLimit, memoryLimit };
+    },
+    buttonStateKey: "marsojButtonState"
   }
 };
 
 // dist/domSelectors.js
+var COMMON_PROBLEM_NAME_SELECTORS = [
+  "#problem-title",
+  "[data-problem-title]",
+  ".problem-title",
+  ".problem__title",
+  "main h1",
+  "article h1",
+  "h1"
+];
+var wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+function getProblemNameSelectors(config) {
+  return [config.problemNameSelector, ...config.problemNameSelectors || [], ...COMMON_PROBLEM_NAME_SELECTORS].filter((selector, index, selectors) => Boolean(selector) && selectors.indexOf(selector) === index);
+}
+function getReadableDocuments() {
+  const documents = [document];
+  document.querySelectorAll("iframe").forEach((iframe) => {
+    try {
+      const iframeDocument = iframe.contentDocument;
+      if (iframeDocument) {
+        documents.push(iframeDocument);
+      }
+    } catch (error) {
+      console.log("OICPP SampleTester: getProblemName - \u8DF3\u8FC7\u4E0D\u53EF\u8BBF\u95EE\u7684 iframe:", error);
+    }
+  });
+  return documents;
+}
+function normalizeProblemName(problemName) {
+  return problemName.replace(/\s+/g, " ").trim();
+}
+function extractProblemNameFromElement(element, config) {
+  if (config.specialProblemNameExtraction) {
+    return normalizeProblemName(config.specialProblemNameExtraction(element));
+  }
+  return normalizeProblemName(element.textContent || "");
+}
+function getProblemNameFromDocumentTitle(hostname) {
+  let title = normalizeProblemName(document.title);
+  if (!title) {
+    return "";
+  }
+  const suffixes = [
+    " - \u6D1B\u8C37",
+    " | \u6D1B\u8C37",
+    " - Codeforces",
+    " - AtCoder",
+    " - VJudge",
+    " - Hydro",
+    " - MarsOJ",
+    " - SYZOJ"
+  ];
+  for (const suffix of suffixes) {
+    const suffixIndex = title.indexOf(suffix);
+    if (suffixIndex > 0) {
+      title = title.substring(0, suffixIndex).trim();
+      break;
+    }
+  }
+  if (hostname === "atcoder.jp") {
+    const tasksMatch = window.location.pathname.match(/\/tasks\/([^/]+)$/);
+    if (tasksMatch && tasksMatch[1]) {
+      return tasksMatch[1];
+    }
+  }
+  return title;
+}
+function getLuoguProblemName(hostname) {
+  const problemMatch = window.location.pathname.match(/^\/problem\/([^/?#]+)/i);
+  if (!problemMatch || !problemMatch[1]) {
+    return "";
+  }
+  const problemId = decodeURIComponent(problemMatch[1]).trim();
+  const normalizedProblemId = problemId.toLowerCase();
+  const documentTitle = getProblemNameFromDocumentTitle(hostname);
+  const documentTitleIdIndex = documentTitle.toLowerCase().indexOf(normalizedProblemId);
+  if (documentTitleIdIndex >= 0) {
+    return documentTitle.substring(documentTitleIdIndex).trim();
+  }
+  const titleSelectors = [
+    "h1.lfe-h1",
+    "[data-problem-title]",
+    '[class*="problem"] h1',
+    "main h1",
+    "article h1"
+  ];
+  const ignoredTitles = /* @__PURE__ */ new Set(["\u9898\u76EE\u8BE6\u60C5", "\u6D1B\u8C37", "\u9996\u9875"]);
+  for (const selector of titleSelectors) {
+    const titleElement = document.querySelector(selector);
+    const candidate = normalizeProblemName((titleElement === null || titleElement === void 0 ? void 0 : titleElement.textContent) || "");
+    if (!candidate || ignoredTitles.has(candidate)) {
+      continue;
+    }
+    const candidateIdIndex = candidate.toLowerCase().indexOf(normalizedProblemId);
+    if (candidateIdIndex >= 0) {
+      return candidate.substring(candidateIdIndex).trim();
+    }
+    return `${problemId} ${candidate}`;
+  }
+  return problemId;
+}
 function extractCodeSnippets() {
   console.log("OICPP SampleTester: extractCodeSnippets - \u5F00\u59CB\u63D0\u53D6\u4EE3\u7801\u7247\u6BB5\u3002");
-  const rawSnippets = [];
   const hostname = window.location.hostname;
   const config = domainConfigs[hostname];
   if (!config || !config.extract) {
     console.log("OICPP SampleTester: extractCodeSnippets - \u57DF\u540D\u65E0\u7279\u5B9A\u914D\u7F6E\u6216\u63D0\u53D6\u51FD\u6570\uFF0C\u4F7F\u7528\u9ED8\u8BA4\u9009\u62E9\u5668\u3002");
-    const rawSnippets2 = [];
+    const rawSnippets = [];
     document.querySelectorAll("pre.syntax-hl code").forEach((element) => {
-      rawSnippets2.push(element.textContent);
+      rawSnippets.push(element.textContent);
     });
     const pairedSamples = [];
-    for (let i = 0; i < rawSnippets2.length; i += 2) {
-      const inputContent = rawSnippets2[i];
-      const outputContent = rawSnippets2[i + 1] || "";
+    for (let i = 0; i < rawSnippets.length; i += 2) {
+      const inputContent = rawSnippets[i];
+      const outputContent = rawSnippets[i + 1] || "";
       pairedSamples.push({
         id: i / 2 + 1,
         input: inputContent,
@@ -553,20 +887,43 @@ function getProblemName() {
     console.log("OICPP SampleTester: getProblemName - \u672A\u627E\u5230\u914D\u7F6E\u6216\u9898\u76EE\u540D\u79F0\u9009\u62E9\u5668\u3002");
     return "";
   }
-  const problemTitleElement = document.querySelector(config.problemNameSelector);
-  if (problemTitleElement) {
-    let problemName;
-    if (config.specialProblemNameExtraction) {
-      problemName = config.specialProblemNameExtraction(problemTitleElement);
-      console.log("OICPP SampleTester: getProblemName - \u4F7F\u7528\u7279\u6B8A\u63D0\u53D6\u65B9\u6CD5\u3002\u540D\u79F0:", problemName);
-    } else {
-      problemName = problemTitleElement.textContent.trim();
-      console.log("OICPP SampleTester: getProblemName - \u4F7F\u7528\u9ED8\u8BA4\u63D0\u53D6\u65B9\u6CD5\u3002\u540D\u79F0:", problemName);
+  if (hostname === "luogu.com.cn" || hostname === "www.luogu.com.cn") {
+    const luoguProblemName = getLuoguProblemName(hostname);
+    if (luoguProblemName) {
+      console.log("OICPP SampleTester: getProblemName - \u4F7F\u7528\u6D1B\u8C37\u9898\u76EE URL \u548C\u6807\u9898\u63D0\u53D6\u540D\u79F0:", luoguProblemName);
+      return luoguProblemName;
     }
-    return problemName;
   }
-  console.log("OICPP SampleTester: getProblemName - \u672A\u627E\u5230\u9898\u76EE\u6807\u9898\u5143\u7D20\u3002");
+  const selectors = getProblemNameSelectors(config);
+  const documents = getReadableDocuments();
+  for (const readableDocument of documents) {
+    for (const selector of selectors) {
+      const problemTitleElement = readableDocument.querySelector(selector);
+      if (problemTitleElement) {
+        const problemName = extractProblemNameFromElement(problemTitleElement, config);
+        if (problemName) {
+          console.log("OICPP SampleTester: getProblemName - \u4F7F\u7528\u9009\u62E9\u5668\u63D0\u53D6\u540D\u79F0:", selector, problemName);
+          return problemName;
+        }
+      }
+    }
+  }
+  const titleProblemName = getProblemNameFromDocumentTitle(hostname);
+  if (titleProblemName) {
+    console.log("OICPP SampleTester: getProblemName - \u4F7F\u7528 document.title \u63D0\u53D6\u540D\u79F0:", titleProblemName);
+    return titleProblemName;
+  }
+  console.log("OICPP SampleTester: getProblemName - \u672A\u627E\u5230\u9898\u76EE\u6807\u9898\u5143\u7D20\u6216\u53EF\u7528\u6807\u9898\u3002");
   return "";
+}
+async function waitForProblemName(timeoutMs = 2500, intervalMs = 100) {
+  const deadline = Date.now() + timeoutMs;
+  let problemName = getProblemName();
+  while (!problemName && Date.now() < deadline) {
+    await wait(intervalMs);
+    problemName = getProblemName();
+  }
+  return problemName;
 }
 
 // dist/api.js
@@ -678,7 +1035,9 @@ async function handleToggleButtonClick(config) {
     localStorage.setItem(PROBLEM_NAME_CUSTOM_INPUT_KEY, customName.trim());
     problemName = customName.trim();
   } else {
-    problemName = getProblemName();
+    statusMessage.style.color = "blue";
+    statusMessage.textContent = "\u6B63\u5728\u83B7\u53D6\u9898\u76EE\u4FE1\u606F...";
+    problemName = await waitForProblemName();
   }
   if (problemName.length > 32) {
     console.warn("OICPP SampleTester: handleToggleButtonClick - \u9898\u76EE\u540D\u79F0\u8FC7\u957F\uFF0C\u5DF2\u622A\u65AD\u81F332\u5B57\u7B26\u3002");
@@ -1643,6 +2002,10 @@ async function handleDynamicDomainConfig() {
 (async function() {
   "use strict";
   console.log("OICPP SampleTester: \u6CB9\u7334\u811A\u672C\u5DF2\u52A0\u8F7D\u3002");
+  if (window.self !== window.top) {
+    console.log("OICPP SampleTester: \u5F53\u524D\u9875\u9762\u5728 iframe \u4E2D\uFF0C\u8DF3\u8FC7 UI \u521D\u59CB\u5316\u3002");
+    return;
+  }
   if (await handleDynamicDomainConfig()) {
     return;
   }
