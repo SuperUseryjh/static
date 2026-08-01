@@ -1,0 +1,861 @@
+@import url('https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap');
+
+/*
+ ____                  ____              __             __                          ______  __                                   
+/\  _`\               /\  _`\           /\ \__         /\ \                        /\__  _\/\ \                                  
+\ \ \L\_\  _ __   _ __\ \ \/\ \     __  \ \ ,_\    __  \ \ \____    ____     __    \/_/\ \/\ \ \___      __    ___ ___      __   
+ \ \  _\L /\`'__\/\`'__\ \ \ \ \  /'__`\ \ \ \/  /'__`\ \ \ '__`\  /',__\  /'__`\     \ \ \ \ \  _ `\  /'__`\/' __` __`\  /'__`\ 
+  \ \ \L\ \ \ \/ \ \ \/ \ \ \_\ \/\ \L\.\_\ \ \_/\ \L\.\_\ \ \L\ \/\__, `\/\  __/      \ \ \ \ \ \ \ \/\  __//\ \/\ \/\ \/\  __/ 
+   \ \____/\ \_\  \ \_\  \ \____/\ \__/.\_\\ \__\ \__/.\_\\ \_,__/\/\____/\ \____\      \ \_\ \ \_\ \_\ \____\ \_\ \_\ \_\ \____\
+    \/___/  \/_/   \/_/   \/___/  \/__/\/_/ \/__/\/__/\/_/ \/___/  \/___/  \/____/       \/_/  \/_/\/_/\/____/\/_/\/_/\/_/\/____/
+                                                                                                                                 
+                                                                                                                                 
+本版式基于 https://backrooms-wiki-cn.wikidot.com/theme:brokedown-database，遵循 CC 协议
+
+Version 1.0.0
+
+By YaoOnion
+*/
+
+:root {
+   /* ----------------------
+      版头自定义变量（新增加）
+   --------------------- */
+   --header-title: "Backrooms";             /* 主标题文字 */
+   --header-subtitle: "你曾经来过这里";   /* 副标题文字 */
+   --logo-image: url('https://fastly.jsdelivr.net/gh/Etinjat/CSS@Backrooms/LOGO_Backrooms_cut.svg'); /* Logo 地址 */
+   --logo-mask-size: 10rem;                      /* Logo 大小 */
+
+   --body-font: 'Dotted Songti Square', 'PT Sans', '等线', sans-serif;
+   --header-font:'Dotted Songti Square','ZCOOL XiaoWei',  'Times New Roman', sans-serif;
+   --title-font: 'Dotted Songti Square', 'Times New Roman', '华文中宋',  monospace;
+   --mono-font:'ZCOOL XiaoWei','Dotted Songti Square',  'PT Sans', '微软雅黑', monospace;
+ 
+   /* ----------------------
+   特效
+ --------------------- */  
+   --fade-in-delay: 4s;   
+   --typing-speed:6s;
+ 
+/* ----------------------
+   基准色以及其他
+ --------------------- */    
+   --white-monochrome: 3, 3, 3;
+   --pale-gray-monochrome:50, 50, 50;
+   --light-pale-gray-monochrome: 150,150,150;
+   --very-light-gray-monochrome:190,187,156;
+   --light-pale-gray-monochrome: 205, 205, 205;
+   --very-light-gray-monochrome: 215, 215, 215;
+   --light-gray-monochrome: 240, 230, 230;
+   --black-monochrome: 50, 240, 240;
+   --pale-accent: 210,107,92;
+   --bright-accent: 100, 120, 225;
+   --medium-accent:000,000,000;
+   --dark-accent: 122,145,165;
+   --alt-accent: 221, 102, 17;
+   --very-dark-accent: 591,5,4;
+   --alt-accent: 204,102,0;
+
+/*---------------------- 其他颜色 ---------------------*/ 
+   --swatch-headerh1-color:var(--swatch-text-general);
+   --swatch-headerh2-color:var(--swatch-headerh1-color);
+   --swatch-text-light:230,240,250;
+   --swatch-tertiary-color:150,158,200;
+   --swatch-text-secondary-color:255,245,255;
+ 
+/*---------------------- 自设颜色 ---------------------*/ 
+   --display-green:23,230,16;
+   --darkest-blue: 22,45,65;
+   --pale-blue:122,145,165;
+ 
+   --sel-txt-color:rgb(var(--display-green));
+   --sel-bg-color:rgba(0,0,0,0.3);
+ 
+   --table-border-color:rgba(var(--pale-blue),0.8);
+   --table-th-color:rgba(255,255,255,0.8);
+   --table-th-bg:rgba(var(--darkest-blue),0.8);
+ 
+   --color-options-btn:#000;
+ 
+/*------------------------------
+   版头标题   
+-------------------------- */    
+   --header-h1-font-size:180%;
+   --header-h2-font-size:110%;
+ 
+   /*------------- 颜色 -----------------*/   
+   --hdtt-color-11:rgb(var(--darkest-blue));
+   --hdtt-color-22:rgb(var(--swatch-text-general));
+ 
+   --hdtt-flcl-11:yellow;
+   --hdtt-flcl-22:purple;  
+ 
+  /*------------- 滤镜 -----------------*/   
+   --hdtt-filter-000:drop-shadow(1px 0px 0px var(--hdtt-flcl-11)) drop-shadow(1px 2px 0px var(--hdtt-flcl-22)) saturate(100%) brightness(100%);
+   --hdtt-filter-aaa:drop-shadow(5px 2px 1px var(--hdtt-flcl-11)) drop-shadow(2px 2px 1px var(--hdtt-flcl-22)) saturate(500%) brightness(150%);
+   --hdtt-filter-bbb:drop-shadow(1px 0px 1px var(--hdtt-flcl-11)) drop-shadow(1px 0px 0px var(--hdtt-flcl-22)) saturate(100%) brightness(100%);
+   --hdtt-filter-ccc:var(--hdtt-filter-000);
+   --hdtt-filter-ddd:drop-shadow(1px 0px 0px var(--hdtt-flcl-11)) drop-shadow(1px 0px 0px var(--hdtt-flcl-22)) saturate(200%) brightness(100%);
+   --hdtt-filter-eee:drop-shadow(1px 0px 0px var(--hdtt-flcl-11)) drop-shadow(1px 2px 0px var(--hdtt-flcl-22)) saturate(100%) brightness(100%);
+   --hdtt-filter-fff:var(--hdtt-filter-000);
+   --hdtt-filter-ggg:drop-shadow(2px 2px 1px var(--hdtt-flcl-11)) drop-shadow(1px 2px 0px var(--hdtt-flcl-22)) saturate(500%) brightness(150%);
+   --hdtt-filter-hhh:var(--hdtt-filter-000);
+ 
+/* -------------- 文字背景色 ------------------ */
+   --hdtt-line-a:linear-gradient(90deg, var(--hdtt-color-11) 40%, var(--hdtt-color-11) 41%, transparent 41.5%,transparent 65%, var(--hdtt-color-22) 65.5%, var(--hdtt-color-22) 90%);
+   --hdtt-line-aw:-webkit-linear-gradient(90deg, var(--hdtt-color-11) 40%, var(--hdtt-color-11) 41%, transparent 41.5%,transparent 65%, var(--hdtt-color-22) 65.5%, var(--hdtt-color-22) 90%);
+   --hdtt-line-0: linear-gradient(90deg, var(--hdtt-color-11) 0%, var(--hdtt-color-22) 90%);
+   --hdtt-line-0w: -webkit-linear-gradient(90deg, var(--hdtt-color-11) 0%, var(--hdtt-color-22) 90%);
+   --hdtt-line-aa: linear-gradient(-90deg, var(--hdtt-color-11) 0%, var(--hdtt-color-11) 21%, transparent 21.5%,transparent 25%, var(--hdtt-color-22) 25.5%, var(--hdtt-color-22) 90%);
+   --hdtt-line-aaw: -webkit-linear-gradient(-90deg, var(--hdtt-color-11) 0%, var(--hdtt-color-11) 21%, transparent 21.5%,transparent 25%, var(--hdtt-color-22) 25.5%, var(--hdtt-color-22) 90%);
+   --hdtt-line-bbw: linear-gradient(-90deg, var(--hdtt-color-11) 0%, var(--hdtt-color-11) 30%, transparent 31.5%,transparent 35%, var(--hdtt-color-22) 35.5%, var(--hdtt-color-22) 90%);
+   --hdtt-line-cc: linear-gradient(-90deg, var(--hdtt-color-11) 0%, var(--hdtt-color-11) 50%, transparent 50.1%,transparent  65%, var(--hdtt-color-22) 65.5%, var(--hdtt-color-22) 90%);
+   --hdtt-line-ccw: -webkit-linear-gradient(-90deg, var(--hdtt-color-11) 0%, var(--hdtt-color-11) 50%, transparent 50.1%,transparent  65%, var(--hdtt-color-22) 65.5%, var(--hdtt-color-22) 90%);
+   --hdtt-line-dd: linear-gradient(90deg, var(--hdtt-color-11) 0%, var(--hdtt-color-11) 50%, transparent 50.1%,transparent  65%, var(--hdtt-color-22) 65.5%, var(--hdtt-color-22) 90%);
+   --hdtt-line-ddw: -webkit-linear-gradient(90deg, var(--hdtt-color-11) 0%, var(--hdtt-color-11) 50%, transparent 50.1%,transparent  65%, var(--hdtt-color-22) 65.5%, var(--hdtt-color-22) 90%);
+   --hdtt-line-1:linear-gradient(-30deg, var(--hdtt-color-11) 40%, var(--hdtt-color-22) 90%);
+   --hdtt-line-1w:-webkit-linear-gradient(-30deg, var(--hdtt-color-11) 40%, var(--hdtt-color-22) 90%);      
+ 
+/* -------------------------
+      版头logo
+-------------------------- */  
+   --logo-bg-111:rgba(var(--darkest-blue),1);
+   --logo-bg-222:rgba(255,215,0,0.5);
+ 
+/*------------------------------
+版头背景
+------------------------------*/
+   --content-mask-size:7rem;      
+   --header-mask-size:8rem;    
+ 
+   --header-bg-color:rgba(var(--darkest-blue),0.8);
+ 
+   --scanline-cl-111:rgb(var(--darkest-blue));
+   --scanline-cl-222:rgb(var(--swatch-text-general));   
+ 
+   --scanline-height:3rem;
+   --scanline-limit-start:-3rem;   
+   --scanline-limit:20rem; 
+   --scanline-filter-color:rgba(var(--display-green),0.5);
+ 
+   --scanline-speed:5s;    
+   --scanline-filter:brightness(300%) saturate(120%);
+ 
+   --hdbg-scanline-000:linear-gradient(0deg, transparent 0%, transparent 2%,var(--scanline-cl-111) 5%, var(--scanline-cl-222) 20%, var(--scanline-cl-222) 40%, var(--scanline-cl-111) 60%, transparent 90%, transparent 100%);
+   --hdtt-scanline-00w:-webkit-linear-gradient(0deg,transparent 2%,var(--scanline-cl-111) 5%, var(--scanline-cl-111) 10%, var(--scanline-cl-222) 20%, var(--scanline-cl-222) 40%, var(--scanline-cl-111) 60%, transparent 90%, transparent 100%);
+ 
+/*--------------------------------------------  
+      版头杂项 
+------------------------------------------- */ 
+   --account-op-bg:#333;
+   --account-op-bg222:#000;
+   --account-op-bd000: 5px double #000;
+   --account-op-bd111: 2px solid #000;
+   --account-btn-color: #fff;
+ 
+   --search-color:inherit;
+   --search-bg:#000;
+   --search-bg-hover:#333; 
+ 
+/*--------------------------------
+正文部分
+--------------------------------*/    
+   --quote-bg:rgba(var(--swatch-secondary-color),0.8);
+   --quote-bd-c11:rgba(var(--swatch-text-general),0.8);
+   --quote-bg-box111:rgba(var(--swatch-secondary-color),0.8);
+   --quote-bghv-box111:rgba(33,33,33,0.8);
+   --quote-bd-sz11:2px;
+   --quote-bd:4px solid rgba(33,33,33,0.8);
+ 
+/*-------------- 扫描引用块 ------------------*/      
+   --scanline-ct-bg:var(--header-bg-color);
+   --scanline-ct-width:3rem;
+   --scanline-limit222:100%;
+   --hdbg-scanline-111:linear-gradient(-90deg, transparent 0%, transparent 2%,var(--scanline-cl-111) 5%, var(--scanline-cl-222) 20%, var(--scanline-cl-222) 40%, var(--scanline-cl-111) 60%, transparent 90%, transparent 100%);
+   --hdtt-scanline-11w:-webkit-linear-gradient(0deg,transparent 2%,var(--scanline-cl-111) 5%, var(--scanline-cl-111) 10%, var(--scanline-cl-222) 20%, var(--scanline-cl-222) 40%, var(--scanline-cl-111) 60%, transparent 90%, transparent 100%);
+   --scanline-letter-speed:5s;
+   --scanline-cl-444:rgba(0,255,255,1);
+   --scanline-cl-333:rgba(0,191,255,1);
+
+   --hdbg-scanline-222:linear-gradient(-90deg, transparent 0%, transparent 2%,var(--scanline-cl-333) 5%, var(--scanline-cl-444) 20%, var(--scanline-cl-444) 40%, var(--scanline-cl-333) 60%, transparent 90%, transparent 100%);
+   --hdbg-scanline-22w:-webkit-linear-gradient(-90deg, transparent 0%, transparent 2%,var(--scanline-cl-333) 5%, var(--scanline-cl-444) 20%, var(--scanline-cl-444) 40%, var(--scanline-cl-333) 60%, transparent 90%, transparent 100%);
+   --hdbg-scanline-333:linear-gradient(180deg, transparent 0%, transparent 60%,var(--scanline-cl-333) 80%, var(--scanline-cl-444) 85%, var(--scanline-cl-444) 90%, var(--scanline-cl-333) 95%, transparent 98%, transparent 100%);
+   --hdbg-scanline-33w:-webkit-inear-gradient(180deg, transparent 0%, transparent 60%,var(--scanline-cl-333) 80%, var(--scanline-cl-444) 85%, var(--scanline-cl-444) 90%, var(--scanline-cl-333) 95%, transparent 98%, transparent 100%);
+ 
+/* --------------------------------------------
+      图标数据
+----------------------------------------------- */
+   --header-image:var(--grid-image); 
+   --grid-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIYAAABoCAMAAAAD6XhRAAAAn1BMVEUAAAD////+/v7R0dHV1dXV1dXx8fGurq7+/v7S0tL9/f3////r6evS0tKDg4Pn5+fr6+v+/v7n5+fU1NTZ2dnr6+vb29u3t7dKSkpVVVXk5OT////Z2dn39/f9/f39/f3q6ur+/v79/P37+vubm5v39/f///+srKyioqLKysrz8/P4+Pjt7e2NjY36+vr////8+/zq6ur9/f3+/v7z8/M2KvSPAAAAM3RSTlMAU9Ocok4S1cJVnmGwYSn6/r+nsvv1/bIYCUJx5KiB9GO15fyPXjeZdmEVJcNVNFusuKCSbWiCAAABQ0lEQVRo3u3aXU/CMBTG8VJ1dLOTVdlUJmI3FeVF0cP3/2zecvUcEwnpzHOu/9l+ycoFJzVmEDOyZ0pxbi9wkI1dhou80BiX4pViLCUOriaVwiiDxijlWiluZKQwpjUZyTEaMsgggwwyyCCDDDLIICMBRiJ/EMg4OuNWZSiLhbumvsdFHsyshePlAQetlTkOHvcL5RE+mCcf0VjpIp5OLA5cL73DLznCR/Ha2cjq/TP+KgM6omSQQQYZZJBBBhlkkEEGGWSQQcYQGX/fb0x+wXiJDo2VzuHpxCpF30flJcG8arsvp+6+vLL7WkizhMX8NJvA6g0X+YmOqLKQHNAvhQwyyCCDDDLIIIMMMsgg4/8xErnpRMYhI40rRpl6xeg9mNUazlI8DtYbaXGwreoPXLTBfBZwdiHioIhhpz0ifHlcfP8AKMWr0khhiCAAAAAASUVORK5CYII=");
+}
+ 
+/*
+===================================
+主体
+==================================
+*/
+#edit-page-textarea::selection,
+::selection { 
+    color: var(--sel-txt-color) ;
+    background:var(--sel-bg-color) ;
+}
+ 
+::-moz-selection { 
+    color: var(--sel-txt-color) ;
+    background:var(--sel-bg-color) ;
+}
+ 
+#edit-page-textarea::-moz-selection,
+#edit-page-textarea::selection { 
+    color:#000;
+    background:rgb(var(--pale-blue)) ;
+}
+ 
+.blinkblock ::-moz-selection,
+.blinkblock ::selection {
+   background: green;
+   color:#000 ;
+}
+ 
+.et-typing *::-moz-selection,
+.et-typing *::selection,
+.scanline-letter-verti *::-moz-selection,
+.scanline-letter-verti *::selection,
+.scanline-letter *::-moz-selection,
+.scanline-letter *::selection{
+   background: rgba(var(--pale-blue), 0.2) ;
+}
+ 
+/*----------------------------*/
+#skrollr-body, #container {
+  background-image: none;
+  letter-spacing: 0.5px;
+}
+ 
+#container-wrap-wrap::before {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0.03) 50%, rgba(0, 0, 0, 0.45) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.22), rgba(0, 255, 0, 0.11), rgba(0, 0, 255, 0.22));
+  z-index: -1;
+  background-size: 100% 2px, 5px 100%;
+}
+
+/*
+===================================
+版头标题绑定 CSS 变量
+==================================
+*/
+/* 隐藏系统原生默认文本，避免与伪元素叠加 */
+#header h1 a, 
+#header h2 span {
+  color: transparent !important;
+}
+
+#header h1 a:before {
+  content: var(--header-title, "默认标题"); /* 优先使用变量，回退文本 */
+  line-height: initial;
+  top: 0rem;
+  position: absolute;
+}
+
+#header h2 span:before {
+  content: var(--header-subtitle, "默认副标题"); /* 优先使用变量，回退文本 */
+}
+
+#header h1 a:before,
+#header h2 span:before {
+  background-image: var(--hdtt-line-1);
+  background-image: var(--hdtt-line-1w);
+  background-size: 1rem;
+  background-repeat: repeat-x;
+  text-shadow: none;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+
+  -webkit-animation: flashing 5s infinite;
+  animation: flashing 5s infinite;
+  animation-timing-function: ease-out;
+  -webkit-animation-timing-function: ease-out;
+  -webkit-filter: var(--hdtt-filter-000);
+  filter: var(--hdtt-filter-000);
+}
+ 
+@keyframes flashing{
+0%{ opacity: 1; 
+     -webkit-filter:var(--hdtt-filter-000); filter:var(--hdtt-filter-000);
+      background-image:var(--hdtt-line-0); background-image:var(--hdtt-line-0w);
+      }    
+1%{ opacity: 0.8; 
+    -webkit-filter:var(--hdtt-filter-aaa); filter:var(--hdtt-filter-aaa);
+    background-image:var(--hdtt-line-dd);background-image:var(--hdtt-line-dd);
+      }    
+2%{ opacity: 1; 
+      -webkit-filter:var(--hdtt-filter-bbb);filter:var(--hdtt-filter-bbb);
+      }    
+40%{ opacity: 1; 
+      -webkit-filter:var(--hdtt-filter-ccc);filter:var(--hdtt-filter-ccc);
+      background-image:var(--hdtt-line-0);background-image:var(--hdtt-line-0w);
+      }     
+43%{ opacity: 1; 
+      -webkit-filter:var(--hdtt-filter-ddd);filter:var(--hdtt-filter-ddd);
+      }    
+44%{ opacity: 1; 
+      -webkit-filter:var(--hdtt-filter-eee); filter:var(--hdtt-filter-eee);
+      }        
+80%{ opacity: 1; 
+      -webkit-filter:var(--hdtt-filter-fff); filter:var(--hdtt-filter-fff);
+      background-image:var(--hdtt-line-0) ; background-image:var(--hdtt-line-0w) ; 
+      }    
+83%{ opacity: 1; 
+      -webkit-filter:var(--hdtt-filter-ggg);filter:var(--hdtt-filter-ggg);
+      background-image:var(--hdtt-line-cc) ;background-image:var(--hdtt-line-ccw) ;
+      }        
+84%{ opacity: 1;
+      -webkit-filter:var(--hdtt-filter-hhh); filter:var(--hdtt-filter-hhh);
+      background-image:var(--hdtt-line-0);  background-image:var(--hdtt-line-0w); 
+      }  
+100%{ opacity: 1;
+      -webkit-filter:var(--hdtt-filter-hhh);filter:var(--hdtt-filter-hhh);
+      }    
+}
+ 
+@media (max-width: 500px){
+#header h1 a:before {
+  top:1rem;
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+}
+}
+
+/*
+===================================
+版头logo
+==================================
+*/
+#header::before {
+ display: none;
+}
+ 
+#header-extra-div-1:after,
+#header-extra-div-1:before,
+#header-extra-div-1{
+  display: block;
+  top:0;
+  position: absolute;
+  width: 100%;
+  height:var(--header-height-on-desktop);
+  z-index: -1;
+  background: var(--logo-image);
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-size: var(--logo-mask-size);
+  filter: brightness(100%) drop-shadow(0 0 1px #333) drop-shadow(0 0 0px #333) drop-shadow(0 0 0px #333);
+}
+ 
+#header-extra-div-1:after,
+#header-extra-div-1:before{
+   content: ' ';
+   mask:var(--logo-image);
+   mask-size:var(--logo-mask-size);
+   mask-repeat: no-repeat;
+   mask-position: center;   
+   -webkit-mask:var(--logo-image);
+   -webkit-mask-size: var(--logo-mask-size);
+   -webkit-mask-repeat: no-repeat;
+   -webkit-mask-position: center;   
+   background-size: 50%;
+   opacity: 0.4;
+}
+ 
+#header-extra-div-1:after{
+ background: var(--logo-bg-111);
+ -webkit-animation: lg-aft 4s infinite; 
+ animation: lg-aft 4s infinite; 
+ opacity: 0.9;
+}
+ 
+#header-extra-div-1:before{
+ background: var(--logo-bg-222);
+ -webkit-animation: lg-bf 4s infinite; 
+ animation: lg-bf 4s infinite; 
+ opacity: 0.5;  
+}
+ 
+@keyframes lg-bf{
+      0%{left:0rem; top:0rem}
+      0.01%{left:0.5rem; top:-0.5rem}
+      2%{left:0.5rem; top:-0.5rem}
+      2.01%{left:0rem; top:0rem}
+      40%{left:0rem; top:0rem}
+      40.01%{left:0.5rem; top:0rem}
+      42%{left:0.5rem; top:0rem}
+      42.01%{left:0rem; top:0rem}
+      80%{left:0rem; top:0rem}
+      80.01%{left:-0.5rem; top:0.2rem}
+      83%{left:-0.5rem; top:0.2rem}
+      83.01%{left:0rem; top:0rem}
+      100%{left:0rem; top:0rem}
+}
+ 
+@keyframes lg-aft{
+     0%{left:0rem; top:0rem}
+      0.01%{left:0.5rem; top:0rem}
+      3%{left:0.5rem; top:0rem}
+      3.01%{left:0rem; top:0rem}
+      40%{left:0rem; top:0rem}
+      40.01%{left:-1rem; top:0rem}
+      43%{left:-1rem; top:0rem}
+      43.1%{left:0rem; top:0rem}
+      80%{left:0rem; top:0rem}
+      80.01%{left:0.5rem; top:-0.5rem}
+      83%{left:0.5rem; top:-0.5rem}
+      83.01%{left:0rem; top:0rem}
+      100%{left:0rem; top:0rem}
+}
+ 
+/*
+===================================
+版头背景
+==================================
+*/
+.logo-scanline, 
+#extra-div-6:before ,
+#extra-div-6:after,
+#extra-div-6{
+   position: absolute;
+   display: block;
+   top:0;
+   left: 0;
+   height: var(--header-height-on-desktop);
+   width: 100%;
+}
+ 
+.logo-scanline,       
+#extra-div-6{  
+  background-color:var(--header-bg-color);
+  mask:var(--header-image);
+  mask-size:var(--header-mask-size);
+  mask-repeat: no-repeat;
+  mask-position: center;   
+  -webkit-mask:var(--header-image);
+  -webkit-mask-size: var(--header-mask-size);
+  -webkit-mask-repeat: repeat;
+  -webkit-mask-position: center;   
+  opacity: 0.8;
+  overflow-y: hidden;
+}    
+.logo-scanline:before,       
+#extra-div-6:before{
+  content: '';
+  display: block;
+  z-index: -5;
+  height: var(--scanline-height);
+  background: var(--hdbg-scanline-00w);
+  background: var(--hdbg-scanline-000);
+  -webkit-filter: var(--scanline-filter); 
+  filter: var(--scanline-filter); 
+ 
+  -webkit-animation: scanline var(--scanline-speed) infinite; 
+  animation: scanline var(--scanline-speed) infinite; 
+}
+ 
+/* 扫描线logo */      
+.logo-scanline{
+  width: auto;
+  height: 15rem;
+  position: relative; 
+  opacity: 1;
+ 
+  -webkit-mask:var(--logo-image);
+  -webkit-mask-size:auto;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask:var(--logo-image);
+  mask-size:50%;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+ 
+.logo-scanline:before{
+  content: '';
+  display: block;
+  height: 1rem;
+}
+ 
+/*----- 扫描线动画 -------*/       
+@keyframes scanline {
+  0%{  margin-top:var(--scanline-limit-start);   }     
+  100%{margin-top:var(--scanline-limit); }  
+}
+ 
+/*
+===================================
+版头杂项
+==================================
+*/
+#account-options {
+  background-color: var(--account-op-bg);
+  border: var(--account-op-bd000);
+}
+ 
+#account-options li:not(:last-child) {
+  border-bottom: var(--account-op-bd111);
+}
+ 
+#account-options li:hover {
+  background-color: var(--account-op-bg222);
+}
+#account-options li:hover a {
+  text-decoration: none;
+  color: var(--account-btn-color);
+}
+ 
+/*--------- 搜索 --------------*/
+#search-top-box-form input[type="submit"]{
+  background: var(--search-bg);
+  color:  var(--search-color);
+}
+ 
+#search-top-box-form input[type="submit"]:hover{
+  background: var(--search-bg-hover);
+  color:  var(--search-color-hover);
+}
+ 
+@media (min-width: 760px) {     
+#search-top-box #search-top-box-input{
+  opacity: 0;
+  transition: all 1s;   
+  width: 0rem;
+  min-width: 0rem;
+}
+ 
+#search-top-box:hover #search-top-box-input{
+  opacity: 1;
+  transition: all 1s;
+  width: 10rem
+}
+}
+ 
+/*
+===================================
+侧边栏
+==================================
+*/
+#main-content::after {
+  filter: sepia(100%) hue-rotate(150deg);
+}
+ 
+#main-content::before {
+  background-color: var(--quote-bg) !important;
+}
+ 
+/*
+===================================
+正文
+==================================
+*/
+.blockquote,
+blockquote{
+  background-color: var(--quote-bg);
+  border: var(--quote-bd);
+}
+ 
+.blockquote hr,
+blockquote hr{
+  opacity: 0.5;
+}
+ 
+code,.code{
+  border: .12rem dashed rgba(var(--swatch-border-color),.5);
+}
+ 
+/* ------------ 标题盒子 ------------------ */
+.titleblock {
+  background-color: rgb(var(--gray-monochrome));
+  color:rgb(var(--text-white-monochrome));
+  padding: 0.5rem 1rem 0.10rem;
+  margin: 1.5rem 0rem 0.5rem 0rem;
+  box-shadow: 0 0.2rem 0.3rem rgba(0,0,0,.5);
+  border: solid rgb(var(--bright-accent)) 2px;
+}
+ 
+.titlebox{
+  color: rgba(255,255,255,0.9);
+  position: relative;
+  top: -1.6rem;
+  background-color: rgb(var(--bright-accent));
+  padding: 0.25rem 1rem;
+  line-height: 0.1rem;
+}
+ 
+.titleblock-green,
+.titleblock-green .titlebox {
+  border: solid rgb(var(--display-green)) 2px;
+}
+ 
+.titleblock-green .titlebox{
+  color: rgba(0,0,0,0.9);
+  background-color: rgb(var(--display-green));
+}
+ 
+.titleblock-blue,
+.titleblock-green .titlebox {
+  border: solid rgb(var(--display-green)) 2px;
+}
+ 
+.titleblock-blue .titlebox{
+  color: rgba(0,0,0,0.9);
+  background-color: rgb(var(--pale-blue));
+}
+.titleblock-blue,
+.titleblock-green .titlebox {
+  border: solid rgba(var(--pale-blue),0.9) 2px;
+}
+ 
+/* ------------ 流光盒子  ------------------ */
+.blinkblock{      
+  padding: 0 0.5rem;  
+  background-color: rgba(10,15,12,0.8);
+  border:3px solid green;
+  -webkit-animation-timing-function:ease-out;
+  -webkit-animation-direction:alternate;    
+  -webkit-animation: blinkborder 1s infinite; 
+  animation: blinkborder 1s infinite; 
+  animation-timing-function:ease-out;
+  animation-direction:alternate;
+}
+ 
+.blinlbar{
+  opacity: 0;
+  -webkit-animation: blinkbar 2s infinite; 
+  animation: blinkbar 2s infinite; 
+}
+ 
+@keyframes blinkborder {
+  to { border-color:rgb(var(--display-green)); }  
+}
+ 
+@keyframes blinkbar {
+  to { opacity: 1 }  
+}
+ 
+/* ------------ 动线 ------------------ */
+.linebolck-outbox {
+  padding: var(--quote-bd-sz11);
+  transition: ease-in .3s;
+  background: linear-gradient(0, var(--quote-bd-c11) var(--quote-bd-sz11), var(--quote-bd-c11) var(--quote-bd-sz11)) no-repeat, 
+              linear-gradient(-90deg, var(--quote-bd-c11) var(--quote-bd-sz11), var(--quote-bd-c11) var(--quote-bd-sz11)) no-repeat, 
+              linear-gradient(-180deg, var(--quote-bd-c11) var(--quote-bd-sz11), var(--quote-bd-c11) var(--quote-bd-sz11)) no-repeat, 
+              linear-gradient(-270deg, var(--quote-bd-c11) var(--quote-bd-sz11), var(--quote-bd-c11) var(--quote-bd-sz11)) no-repeat;
+  background-size: 0 var(--quote-bd-sz11), var(--quote-bd-sz11) 0, 0 var(--quote-bd-sz11), var(--quote-bd-sz11) 0;
+  background-position: left top, right top, right bottom, left bottom;
+  border: var(--quote-bd);
+}
+ 
+.linebolck-outbox:hover{
+  background-size: 100% 2px, 2px 100%, 100% 2px, 2px 100%;
+}
+ 
+.linebolck-inbox{
+  padding:0.5rem 1rem;
+  background: var(--quote-bg-box111);
+  transition: background ease-in .3s;     
+}
+ 
+.linebolck-inbox:hover{
+  background:var(--quote-bghv-box111);
+  transition: background ease-in .3s;     
+}
+ 
+/* ------------ 区块扫描线 ------------------ */
+.scanline-wrap{
+  display: flex;
+  flex-wrap: nowrap;
+  align-items:stretch;
+  width:100%;
+}
+ 
+.scanline-cell{
+  flex-basis:100%;
+}
+.scanline-place{
+  color:transparent;
+  overflow: hidden;  
+}
+ 
+.scanline-animation{ 
+  z-index: -1;
+  margin-left: -100%;
+  width: auto;
+  background:var(--scanline-ct-bg);
+  mask-size:var(--content-mask-size);
+  mask-repeat: no-repeat;
+  mask-position: center;   
+  -webkit-mask:var(--header-image);
+  -webkit-mask-size: var(--content-mask-size);
+  -webkit-mask-repeat: repeat;
+  -webkit-mask-position: center;   
+  opacity: 0.8;
+}
+ 
+.scanline-animation:before{
+  content: '';
+  display: block;
+  z-index: -5;
+  width:var(--scanline-ct-width);
+  height: 100%;
+  background: var(--hdbg-scanline-11w);
+  background: var(--hdbg-scanline-111);
+  -webkit-filter: var(--scanline-filter); 
+  filter: var(--scanline-filter); 
+  -webkit-animation: scanline222 var(--scanline-speed) infinite; 
+  animation: scanline222 var(--scanline-speed) infinite; 
+}
+ 
+@keyframes scanline222 {
+  0%{ margin-left:0rem; }     
+  100%{margin-left:var(--scanline-limit222); }  
+}
+ 
+.scanline-intext{
+  padding:0 1rem;
+}
+ 
+.scanline-logo .scanline-animation{
+  -webkit-mask:var(--logo-image);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size:auto 70%;
+  mask:var(--logo-image);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size:auto 50%;
+}
+.scanline-logo .scanline-animation:before{
+  width: 2rem;
+}
+ 
+/* ------------ 单行扫描线 ------------------ */
+#page-content .scanline-letter-verti p,
+#page-content .scanline-letter p{
+  background-color: rgba(var(--swatch-text-general),1);
+  background-image: var(--hdbg-scanline-22w);        
+  background-image: var(--hdbg-scanline-222);        
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-animation: scanlineletter var(--scanline-letter-speed) infinite;
+  animation: scanlineletter var(--scanline-letter-speed) infinite;
+  background-clip: text;
+  -webkit-text-fill-color:transparent;
+  background-size: 0% 0%;
+  background-repeat: no-repeat;
+}
+ 
+#page-content .scanline-letter-verti p{
+  background-color: rgba(var(--swatch-text-general),1);
+  background-image: var(--hdbg-scanline-33w);        
+  background-image: var(--hdbg-scanline-333);        
+  -webkit-animation: scanlineletter333 var(--scanline-letter-speed) infinite;
+  animation: scanlineletter333 var(--scanline-letter-speed) infinite;
+}
+ 
+@keyframes scanlineletter{
+    0% { background-size: 0% 100%; }
+  100% { background-size:200% 100%; }
+}
+@keyframes scanlineletter333{
+    0% { background-size: 100% 0%; }
+  100% { background-size:100% 300%; }
+}
+ 
+/* ------------ 表格 ------------------ */
+table.wiki-content-table td,
+table.wiki-content-table th, 
+table.wiki-content-table tr {
+  border: .1rem solid var(--table-border-color) !important;
+}
+ 
+table.wiki-content-table th {
+  color:var(--table-th-color);
+  background: var(--table-th-bg);
+}
+ 
+/* ------------ 图片框 ------------------ */
+.scp-image-block {
+  --box-shadow: rgba(var(--darkest-blue),0.8);
+  border: .0625rem outset rgba(var(--swatch-primary),1);
+}
+ 
+/*====================== 结尾 ========================*/
+#page-options-bottom a.btn {
+  opacity: 0.8;
+}
+ 
+#footer a,
+#page-options-container a.btn {
+  color:var(--color-options-btn);   
+}
+ 
+/*====================== 特效：打字机 ========================*/
+.typing-center{
+  font-size: 150%;
+  text-align: center;
+}
+ 
+#page-content .et-typing p{
+  background-image: linear-gradient(0deg, rgb(var(--swatch-text-general)) 100%, transparent);        
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: etwww var(--typing-speed) forwards;
+  background-clip: text;
+  -webkit-text-fill-color:transparent;
+  background-size: 100% 0%;
+  background-repeat: no-repeat;
+}
+ 
+@media (max-width: 500px) {    
+#page-content .et-typing p{
+  animation: etwwwmob 3s forwards;
+  background-size: 0% 100%;
+}
+}
+ 
+@keyframes etwww{
+    0% { background-size: 0% 100%; }
+  100% { background-size:100% 100%; }
+}
+ 
+@keyframes etwwwmob{
+    0% { background-size: 100% 0%; }
+  100% { background-size:100% 100%; }
+}
+ 
+#page-content .et-typing p:nth-child(2)  { animation-delay: calc(0.5 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(3)  { animation-delay: calc(1 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(4)  { animation-delay: calc(2 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(5)  { animation-delay: calc(3 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(6)  { animation-delay: calc(4 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(7)  { animation-delay: calc(5 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(8)  { animation-delay: calc(6 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(9)  { animation-delay: calc(7 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(10) { animation-delay: calc(8 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(11) { animation-delay: calc(9 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(12) { animation-delay: calc(10 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(13) { animation-delay: calc(11 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(14) { animation-delay: calc(12 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(15) { animation-delay: calc(13 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(16) { animation-delay: calc(14 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(17) { animation-delay: calc(15 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(18) { animation-delay: calc(16 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(19) { animation-delay: calc(17 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(20) { animation-delay: calc(18 * var(--fade-in-delay)); }
+#page-content .et-typing p:nth-child(n+20) { animation-delay: calc(n * var(--fade-in-delay)); }
