@@ -1,6 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap');
-
 /*
+
  ____                  ____              __             ____                               
 /\  _`\               /\  _`\           /\ \__         /\  _`\                             
 \ \ \L\_\  _ __   _ __\ \ \/\ \     __  \ \ ,_\    __  \ \ \L\ \     __      ____     __   
@@ -21,10 +20,20 @@
                                               
 本版式基于 https://backrooms-wiki-cn.wikidot.com/theme:brokedown-database，遵循 CC 协议
 
-Version 1.0.0
+Version 1.0.1
 
 By YaoOnion
+
 */
+
+
+@import url('https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap');
+
+/* === Variables.css === */
+/*
+ * Variables.css
+ * 定义版式全局变量
+ */
 
 :root {
    /* ----------------------
@@ -105,7 +114,7 @@ By YaoOnion
    --hdtt-filter-bbb:drop-shadow(1px 0px 1px var(--hdtt-flcl-11)) drop-shadow(1px 0px 0px var(--hdtt-flcl-22)) saturate(100%) brightness(100%);
    --hdtt-filter-ccc:var(--hdtt-filter-000);
    --hdtt-filter-ddd:drop-shadow(1px 0px 0px var(--hdtt-flcl-11)) drop-shadow(1px 0px 0px var(--hdtt-flcl-22)) saturate(200%) brightness(100%);
-   --hdtt-filter-eee:drop-shadow(1px 0px 0px var(--hdtt-flcl-11)) drop-shadow(1px 2px 0px var(--hdtt-flcl-22)) saturate(100%) brightness(100%);
+   --hdtt-filter-eee:drop-shadow(1px 0px 0px var(--hdtt-flcl-11)) drop-shadow(1px 0px 0px var(--hdtt-flcl-22)) saturate(100%) brightness(100%);
    --hdtt-filter-fff:var(--hdtt-filter-000);
    --hdtt-filter-ggg:drop-shadow(2px 2px 1px var(--hdtt-flcl-11)) drop-shadow(1px 2px 0px var(--hdtt-flcl-22)) saturate(500%) brightness(150%);
    --hdtt-filter-hhh:var(--hdtt-filter-000);
@@ -124,7 +133,7 @@ By YaoOnion
    --hdtt-line-ddw: -webkit-linear-gradient(90deg, var(--hdtt-color-11) 0%, var(--hdtt-color-11) 50%, transparent 50.1%,transparent  65%, var(--hdtt-color-22) 65.5%, var(--hdtt-color-22) 90%);
    --hdtt-line-1:linear-gradient(-30deg, var(--hdtt-color-11) 40%, var(--hdtt-color-22) 90%);
    --hdtt-line-1w:-webkit-linear-gradient(-30deg, var(--hdtt-color-11) 40%, var(--hdtt-color-22) 90%);      
- 
+
 /* -------------------------
       版头logo
 -------------------------- */  
@@ -152,7 +161,7 @@ By YaoOnion
  
    --hdbg-scanline-000:linear-gradient(0deg, transparent 0%, transparent 2%,var(--scanline-cl-111) 5%, var(--scanline-cl-222) 20%, var(--scanline-cl-222) 40%, var(--scanline-cl-111) 60%, transparent 90%, transparent 100%);
    --hdtt-scanline-00w:-webkit-linear-gradient(0deg,transparent 2%,var(--scanline-cl-111) 5%, var(--scanline-cl-111) 10%, var(--scanline-cl-222) 20%, var(--scanline-cl-222) 40%, var(--scanline-cl-111) 60%, transparent 90%, transparent 100%);
- 
+
 /*--------------------------------------------  
       版头杂项 
 ------------------------------------------- */ 
@@ -185,19 +194,42 @@ By YaoOnion
    --scanline-letter-speed:5s;
    --scanline-cl-444:rgba(0,255,255,1);
    --scanline-cl-333:rgba(0,191,255,1);
-
+ 
    --hdbg-scanline-222:linear-gradient(-90deg, transparent 0%, transparent 2%,var(--scanline-cl-333) 5%, var(--scanline-cl-444) 20%, var(--scanline-cl-444) 40%, var(--scanline-cl-333) 60%, transparent 90%, transparent 100%);
    --hdbg-scanline-22w:-webkit-linear-gradient(-90deg, transparent 0%, transparent 2%,var(--scanline-cl-333) 5%, var(--scanline-cl-444) 20%, var(--scanline-cl-444) 40%, var(--scanline-cl-333) 60%, transparent 90%, transparent 100%);
    --hdbg-scanline-333:linear-gradient(180deg, transparent 0%, transparent 60%,var(--scanline-cl-333) 80%, var(--scanline-cl-444) 85%, var(--scanline-cl-444) 90%, var(--scanline-cl-333) 95%, transparent 98%, transparent 100%);
    --hdbg-scanline-33w:-webkit-inear-gradient(180deg, transparent 0%, transparent 60%,var(--scanline-cl-333) 80%, var(--scanline-cl-444) 85%, var(--scanline-cl-444) 90%, var(--scanline-cl-333) 95%, transparent 98%, transparent 100%);
- 
+
 /* --------------------------------------------
       图标数据
 ----------------------------------------------- */
    --header-image:var(--grid-image); 
    --grid-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIYAAABoCAMAAAAD6XhRAAAAn1BMVEUAAAD////+/v7R0dHV1dXV1dXx8fGurq7+/v7S0tL9/f3////r6evS0tKDg4Pn5+fr6+v+/v7n5+fU1NTZ2dnr6+vb29u3t7dKSkpVVVXk5OT////Z2dn39/f9/f39/f3q6ur+/v79/P37+vubm5v39/f///+srKyioqLKysrz8/P4+Pjt7e2NjY36+vr////8+/zq6ur9/f3+/v7z8/M2KvSPAAAAM3RSTlMAU9Ocok4S1cJVnmGwYSn6/r+nsvv1/bIYCUJx5KiB9GO15fyPXjeZdmEVJcNVNFusuKCSbWiCAAABQ0lEQVRo3u3aXU/CMBTG8VJ1dLOTVdlUJmI3FeVF0cP3/2zecvUcEwnpzHOu/9l+ycoFJzVmEDOyZ0pxbi9wkI1dhou80BiX4pViLCUOriaVwiiDxijlWiluZKQwpjUZyTEaMsgggwwyyCCDDDLIICMBRiJ/EMg4OuNWZSiLhbumvsdFHsyshePlAQetlTkOHvcL5RE+mCcf0VjpIp5OLA5cL73DLznCR/Ha2cjq/TP+KgM6omSQQQYZZJBBBhlkkEEGGWSQQcYQGX/fb0x+wXiJDo2VzuHpxCpF30flJcG8arsvp+6+vLL7WkizhMX8NJvA6g0X+YmOqLKQHNAvhQwyyCCDDDLIIIMMMsgg4/8xErnpRMYhI40rRpl6xeg9mNUazlI8DtYbaXGwreoPXLTBfBZwdiHioIhhpz0ifHlcfP8AKMWr0khhiCAAAAAASUVORK5CYII=");
 }
- 
+
+/* ----------------------
+   页面下方工具栏（新增加，参考 peroxide.css 的 Page Option Bottom 模块）
+ --------------------- */
+:root {
+   --page-option-bottom-background-color: rgba(var(--darkest-blue), 0.85);
+   --page-option-bottom-button-color: rgb(var(--swatch-text-light));
+   --page-option-bottom-button-border-color: rgba(var(--pale-blue), 0.8);
+   --page-option-bottom-button-more-background-color: rgb(var(--display-green));
+   --page-option-bottom-button-more-color: #000000;
+   --page-option-bottom-delete-color: rgb(var(--pale-accent));
+   --page-option-bottom-2-margin-top: -0.5rem;
+}
+
+/* === 结束 Variables.css === */
+
+
+
+/* === Base.css === */
+/*
+ * Base.css
+ * 基础样式：主体、版头（标题 / Logo / 背景 / 杂项）、侧边栏、结尾（页面下方工具栏）
+ */
+
 /*
 ===================================
 主体
@@ -400,37 +432,37 @@ By YaoOnion
 }
  
 @keyframes lg-bf{
-      0%{left:0rem; top:0rem}
-      0.01%{left:0.5rem; top:-0.5rem}
-      2%{left:0.5rem; top:-0.5rem}
-      2.01%{left:0rem; top:0rem}
-      40%{left:0rem; top:0rem}
-      40.01%{left:0.5rem; top:0rem}
-      42%{left:0.5rem; top:0rem}
-      42.01%{left:0rem; top:0rem}
-      80%{left:0rem; top:0rem}
-      80.01%{left:-0.5rem; top:0.2rem}
-      83%{left:-0.5rem; top:0.2rem}
-      83.01%{left:0rem; top:0rem}
-      100%{left:0rem; top:0rem}
+     0%{left:0rem; top:0rem}
+     0.01%{left:0.5rem; top:-0.5rem}
+     2%{left:0.5rem; top:-0.5rem}
+     2.01%{left:0rem; top:0rem}
+     40%{left:0rem; top:0rem}
+     40.01%{left:0.5rem; top:0rem}
+     42%{left:0.5rem; top:0rem}
+     42.01%{left:0rem; top:0rem}
+     80%{left:0rem; top:0rem}
+     80.01%{left:-0.5rem; top:0.2rem}
+     83%{left:-0.5rem; top:0.2rem}
+     83.01%{left:0rem; top:0rem}
+     100%{left:0rem; top:0rem}
 }
  
 @keyframes lg-aft{
-     0%{left:0rem; top:0rem}
-      0.01%{left:0.5rem; top:0rem}
-      3%{left:0.5rem; top:0rem}
-      3.01%{left:0rem; top:0rem}
-      40%{left:0rem; top:0rem}
-      40.01%{left:-1rem; top:0rem}
-      43%{left:-1rem; top:0rem}
-      43.1%{left:0rem; top:0rem}
-      80%{left:0rem; top:0rem}
-      80.01%{left:0.5rem; top:-0.5rem}
-      83%{left:0.5rem; top:-0.5rem}
-      83.01%{left:0rem; top:0rem}
-      100%{left:0rem; top:0rem}
+    0%{left:0rem; top:0rem}
+     0.01%{left:0.5rem; top:0rem}
+     3%{left:0.5rem; top:0rem}
+     3.01%{left:0rem; top:0rem}
+     40%{left:0rem; top:0rem}
+     40.01%{left:-1rem; top:0rem}
+     43%{left:-1rem; top:0rem}
+     43.1%{left:0rem; top:0rem}
+     80%{left:0rem; top:0rem}
+     80.01%{left:0.5rem; top:-0.5rem}
+     83%{left:0.5rem; top:-0.5rem}
+     83.01%{left:0rem; top:0rem}
+     100%{left:0rem; top:0rem}
 }
- 
+
 /*
 ===================================
 版头背景
@@ -472,7 +504,7 @@ By YaoOnion
   background: var(--hdbg-scanline-000);
   -webkit-filter: var(--scanline-filter); 
   filter: var(--scanline-filter); 
- 
+
   -webkit-animation: scanline var(--scanline-speed) infinite; 
   animation: scanline var(--scanline-speed) infinite; 
 }
@@ -505,7 +537,7 @@ By YaoOnion
   0%{  margin-top:var(--scanline-limit-start);   }     
   100%{margin-top:var(--scanline-limit); }  
 }
- 
+
 /*
 ===================================
 版头杂项
@@ -553,7 +585,7 @@ By YaoOnion
   width: 10rem
 }
 }
- 
+
 /*
 ===================================
 侧边栏
@@ -566,7 +598,96 @@ By YaoOnion
 #main-content::before {
   background-color: var(--quote-bg) !important;
 }
- 
+
+/*
+===================================
+结尾：页面下方工具栏
+==================================
+*/
+#page-options-bottom a.btn {
+  opacity: 0.8;
+}
+
+#footer a,
+#page-options-container a.btn {
+  color: var(--color-options-btn);
+}
+
+/* 页面下方工具栏（参考 peroxide.css 的 Page Option Bottom 模块，配色适配本版式） */
+div#main-content #page-options-bottom,
+div#main-content #page-options-bottom-2 {
+    margin: 0rem auto;
+    width: min(90vw, 37rem);
+    display: flex;
+    flex-wrap: wrap;
+    background-color: var(--page-option-bottom-background-color);
+    padding: 0.5rem 1rem;
+    border-radius: 0.35rem;
+    border: 0.0625rem solid var(--page-option-bottom-button-border-color);
+}
+
+div#main-content div#page-options-bottom-2 {
+    margin-top: var(--page-option-bottom-2-margin-top);
+}
+
+div#main-content #page-options-bottom > a,
+div#main-content #page-options-bottom-2 > a {
+    margin: 0rem !important;
+    margin-bottom: 0.5rem !important;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    flex-basis: 6rem;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+    flex-grow: 1;
+    height: 2rem;
+    box-shadow: inset 0rem -0.075rem 0rem var(--page-option-bottom-button-border-color);
+    font-size: 0.9rem;
+    color: var(--page-option-bottom-button-color);
+    transition: box-shadow 0.2s, color 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+div#page-options-bottom > a#more-options-button {
+    box-shadow: none;
+    margin: 0rem 0.25rem;
+    background-color: var(--page-option-bottom-button-more-background-color) !important;
+    color: var(--page-option-bottom-button-more-color) !important;
+    border-radius: 0.25rem;
+    flex-basis: 4rem;
+    font-weight: bold;
+}
+
+div#page-options-bottom-2 > a#delete-button {
+    color: var(--page-option-bottom-delete-color) !important;
+    box-shadow: inset 0rem -0.075rem 0rem var(--page-option-bottom-delete-color);
+}
+
+div#page-options-bottom-2 > a#delete-button:hover {
+    box-shadow: inset 0rem -0.15rem 0rem var(--page-option-bottom-delete-color);
+}
+
+:is(div#page-options-bottom > a, div#page-options-bottom-2 > a):hover {
+    text-decoration: none;
+    font-weight: bold;
+    box-shadow: inset 0rem -0.15rem 0rem var(--page-option-bottom-button-border-color);
+}
+
+/* === 结束 Base.css === */
+
+
+
+/* === Elements.css === */
+/*
+ * Elements.css
+ * 元素样式：正文（引用块 / 标题盒子 / 流光盒子 / 动线 / 扫描线 / 表格 / 图片框）、打字机特效
+ */
+
 /*
 ===================================
 正文
@@ -803,18 +924,12 @@ table.wiki-content-table th {
   --box-shadow: rgba(var(--darkest-blue),0.8);
   border: .0625rem outset rgba(var(--swatch-primary),1);
 }
- 
-/*====================== 结尾 ========================*/
-#page-options-bottom a.btn {
-  opacity: 0.8;
-}
- 
-#footer a,
-#page-options-container a.btn {
-  color:var(--color-options-btn);   
-}
- 
-/*====================== 特效：打字机 ========================*/
+
+/*
+===================================
+特效：打字机
+==================================
+*/
 .typing-center{
   font-size: 150%;
   text-align: center;
@@ -868,3 +983,5 @@ table.wiki-content-table th {
 #page-content .et-typing p:nth-child(19) { animation-delay: calc(17 * var(--fade-in-delay)); }
 #page-content .et-typing p:nth-child(20) { animation-delay: calc(18 * var(--fade-in-delay)); }
 #page-content .et-typing p:nth-child(n+20) { animation-delay: calc(n * var(--fade-in-delay)); }
+
+/* === 结束 Elements.css === */
