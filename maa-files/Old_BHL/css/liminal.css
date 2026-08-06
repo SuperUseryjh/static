@@ -21,9 +21,9 @@
     --theme-base: "black-highlighter";
     --theme-id: "liminal";
     --theme-name: "Liminal Theme";
-    --logo-image: url("../../New_BHL/image/logo.svg");
-    --header-title: "The Backrooms";
-    --header-subtitle: "你曾经来过这里";
+    --logo-image: url("https://mc-anomaly-archives.wdfiles.com/local--files/start/logo.png");
+    --header-title: "MC诡异见闻录";
+    --header-subtitle: "接触，收容，并最终解明这些未知事物";
     --body-font: Inter, "Noto Sans SC", "Noto Sans TC", Arimo, Verdana, Geneva, sans-serif;
     --header-font: Inter, "Noto Sans SC", "Noto Sans TC", Franklin Gothic Medium, Franklin Gothic, ITC Franklin Gothic,
         Arial, sans-serif;
