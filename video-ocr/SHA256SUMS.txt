@@ -1,0 +1,1 @@
+dc97df5e6653e9db1fa78b43921dcecd6b5a26fb41d1f5973976a06508c53f38  VideoOCR-windows-x64-v1.0.0.zip
