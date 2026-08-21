@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LINUX.SB-Enhance-Script
 // @namespace    https://linux.sb/
-// @version      2.0.0
+// @version      2.1.0
 // @description  布局优化与功能增强脚本，包含主题布局、内容过滤、图片灯箱、可配置图床上传、自动签到、首页身份、UID、侧栏常驻版块列表与头像悬停基础资料卡。
 // @author       COMCOM + Incremental Marker & YaoOnion
 // @match        https://linux.sb/*
@@ -74,6 +74,7 @@
     textPalette: "neutral",
     textColor: "#eeeeee",
     homePersonalized: false,
+    homePostNewWindow: false,
     sidebarSwap: false,
     identityBadges: true,
     uidBadges: true,
@@ -1045,6 +1046,38 @@
     hero.appendChild(search);
     forumLayout.insertBefore(hero, forumLayout.firstChild);
     forumLayout.classList.add("lsb-home-personalized-layout");
+  }
+  function applyHomePostNewWindow() {
+    if (!isHomePage()) {
+      return;
+    }
+    document.querySelectorAll('.post-item .post-title[href*="/topic/"], .post-item .topic-pages a[href*="/topic/"]').forEach(function(link) {
+      if (settings.homePostNewWindow) {
+        if (!link.hasAttribute("data-lsb-home-post-new-window")) {
+          link.setAttribute("data-lsb-home-post-original-target", link.hasAttribute("target") ? link.getAttribute("target") : "__lsb_none__");
+          link.setAttribute("data-lsb-home-post-original-rel", link.hasAttribute("rel") ? link.getAttribute("rel") : "__lsb_none__");
+          link.setAttribute("data-lsb-home-post-new-window", "1");
+        }
+        link.setAttribute("target", "_blank");
+        link.setAttribute("rel", "noopener noreferrer");
+      } else if (link.hasAttribute("data-lsb-home-post-new-window")) {
+        const originalTarget = link.getAttribute("data-lsb-home-post-original-target");
+        const originalRel = link.getAttribute("data-lsb-home-post-original-rel");
+        if (originalTarget === "__lsb_none__") {
+          link.removeAttribute("target");
+        } else {
+          link.setAttribute("target", originalTarget);
+        }
+        if (originalRel === "__lsb_none__") {
+          link.removeAttribute("rel");
+        } else {
+          link.setAttribute("rel", originalRel);
+        }
+        link.removeAttribute("data-lsb-home-post-original-target");
+        link.removeAttribute("data-lsb-home-post-original-rel");
+        link.removeAttribute("data-lsb-home-post-new-window");
+      }
+    });
   }
   function applySidebarSwap() {
     if (!isHomePage()) {
@@ -2739,6 +2772,7 @@
       result.textPalette = DEFAULTS.textPalette;
     }
     result.homePersonalized = result.homePersonalized === true || result.homePersonalized === "true";
+    result.homePostNewWindow = result.homePostNewWindow === true || result.homePostNewWindow === "true";
     result.sidebarSwap = result.sidebarSwap === true || result.sidebarSwap === "true";
     result.identityBadges = result.identityBadges === true || result.identityBadges === "true";
     result.uidBadges = result.uidBadges === true || result.uidBadges === "true";
@@ -2862,6 +2896,7 @@
     applyTheme();
     document.documentElement.setAttribute("data-lsb-ready", "");
     applyHomePersonalization();
+    applyHomePostNewWindow();
     applySidebarSwap();
     enhanceSearchFields(document);
     enforceRadiusOverrides();
@@ -2934,6 +2969,7 @@
       '    <section class="lsb-section" aria-labelledby="lsb-home-title">',
       '      <h2 class="lsb-section-title" id="lsb-home-title">\u9996\u9875\u8BBE\u7F6E</h2>',
       '      <label class="lsb-check-line"><input type="checkbox" data-lsb-home-personalized><span>\u542F\u7528\u9996\u9875\u4E2A\u6027\u5316\u5934\u56FE\u4E0E\u641C\u7D22</span></label>',
+      '      <label class="lsb-check-line"><input type="checkbox" data-lsb-home-post-new-window><span>\u5E16\u5B50\u65B0\u7A97\u53E3\u6253\u5F00</span></label>',
       '      <label class="lsb-check-line"><input type="checkbox" data-lsb-home-sidebar-swap><span>\u4FA7\u680F\u4F4D\u7F6E\u5BF9\u8C03</span></label>',
       '      <label class="lsb-check-line"><input type="checkbox" data-lsb-identity-badges><span>\u8EAB\u4EFD\u6807\u8BC6\u7F8E\u5316</span></label>',
       '      <label class="lsb-check-line"><input type="checkbox" data-lsb-uid-badges><span>UID \u7F8E\u5316\uFF08\u4E0E\u8EAB\u4EFD\u6807\u8BC6\u914D\u5957\uFF09</span></label>',
@@ -3231,6 +3267,12 @@
       syncInterface();
       persistSettings();
     });
+    ui.panel.querySelector("[data-lsb-home-post-new-window]").addEventListener("change", function(event) {
+      settings.homePostNewWindow = event.target.checked;
+      applyHomePostNewWindow();
+      syncInterface();
+      persistSettings();
+    });
     ui.panel.querySelector("[data-lsb-home-sidebar-swap]").addEventListener("change", function(event) {
       settings.sidebarSwap = event.target.checked;
       applySidebarSwap();
@@ -3522,6 +3564,7 @@
     });
     ui.panel.querySelector("[data-lsb-theme]").value = settings.theme;
     ui.panel.querySelector("[data-lsb-home-personalized]").checked = settings.homePersonalized;
+    ui.panel.querySelector("[data-lsb-home-post-new-window]").checked = settings.homePostNewWindow;
     ui.panel.querySelector("[data-lsb-home-sidebar-swap]").checked = settings.sidebarSwap;
     ui.panel.querySelector("[data-lsb-identity-badges]").checked = settings.identityBadges;
     ui.panel.querySelector("[data-lsb-uid-badges]").checked = settings.uidBadges;
@@ -3724,6 +3767,7 @@
     }
     homeObserver = new MutationObserver(function(mutations) {
       applyHomePersonalization();
+      applyHomePostNewWindow();
       enhanceSearchFields(document);
       enforceRadiusOverrides();
       scheduleFilter();
