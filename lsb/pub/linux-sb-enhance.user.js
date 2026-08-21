@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LINUX.SB-Enhance-Script
 // @namespace    https://linux.sb/
-// @version      2.1.0
+// @version      2.2.0
 // @description  布局优化与功能增强脚本，包含主题布局、内容过滤、图片灯箱、可配置图床上传、自动签到、首页身份、UID、侧栏常驻版块列表与头像悬停基础资料卡。
 // @author       COMCOM + Incremental Marker & YaoOnion
 // @match        https://linux.sb/*
@@ -75,6 +75,8 @@
     textColor: "#eeeeee",
     homePersonalized: false,
     homePostNewWindow: false,
+    realtimeRefresh: false,
+    realtimeRefreshInterval: 60,
     sidebarSwap: false,
     identityBadges: true,
     uidBadges: true,
@@ -1612,6 +1614,184 @@
     });
   }
 
+  // dist/realtime.js
+  var realtimeTimer = 0;
+  var realtimePollingInFlight = false;
+  function applyRealtimeRefresh() {
+    if (!settings.realtimeRefresh) {
+      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5DF2\u505C\u6B62\u8F6E\u8BE2");
+      stopRealtimePolling();
+      return;
+    }
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u542F\u52A8\u8F6E\u8BE2\uFF0C\u95F4\u9694 = " + settings.realtimeRefreshInterval + " \u79D2");
+    startRealtimePolling();
+  }
+  function startRealtimePolling() {
+    stopRealtimePolling();
+    pollOnce();
+    realtimeTimer = window.setInterval(pollOnce, settings.realtimeRefreshInterval * 1e3);
+  }
+  function stopRealtimePolling() {
+    if (realtimeTimer) {
+      window.clearInterval(realtimeTimer);
+      realtimeTimer = 0;
+    }
+  }
+  function pollOnce() {
+    if (realtimePollingInFlight || !settings.realtimeRefresh) {
+      if (realtimePollingInFlight) {
+        console.warn("[LSB \u5B9E\u65F6\u66F4\u65B0] \u4E0A\u4E00\u6B21\u8F6E\u8BE2\u5C1A\u672A\u7ED3\u675F\uFF0C\u8DF3\u8FC7\u672C\u6B21");
+      }
+      return;
+    }
+    if (!isHomePage() || document.hidden) {
+      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u8DF3\u8FC7\u8F6E\u8BE2\uFF1A\u975E\u9996\u9875=" + !isHomePage() + " \u9875\u9762\u9690\u85CF=" + document.hidden);
+      return;
+    }
+    realtimePollingInFlight = true;
+    const url = buildPollUrl();
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u53D1\u8D77\u8F6E\u8BE2: GET " + url);
+    const done = function() {
+      realtimePollingInFlight = false;
+    };
+    if (typeof GM_xmlhttpRequest === "function") {
+      GM_xmlhttpRequest({
+        method: "GET",
+        url,
+        timeout: 2e4,
+        onload: function(response) {
+          try {
+            const text = String(response.responseText);
+            console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] GM_xmlhttpRequest \u54CD\u5E94: status = " + response.status + " \u957F\u5EA6 = " + text.length);
+            handlePollResponse(text);
+          } catch (error) {
+            console.error("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5904\u7406\u8F6E\u8BE2\u54CD\u5E94\u5931\u8D25:", error);
+          }
+          done();
+        },
+        onerror: function() {
+          console.error("[LSB \u5B9E\u65F6\u66F4\u65B0] \u8F6E\u8BE2\u8BF7\u6C42\u5931\u8D25 (onerror)");
+          done();
+        },
+        ontimeout: function() {
+          console.error("[LSB \u5B9E\u65F6\u66F4\u65B0] \u8F6E\u8BE2\u8BF7\u6C42\u8D85\u65F6");
+          done();
+        }
+      });
+    } else {
+      fetch(url, { credentials: "same-origin" }).then(function(response) {
+        console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] fetch \u54CD\u5E94: status = " + response.status);
+        return response.text();
+      }).then(function(html) {
+        console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] fetch \u54CD\u5E94\u957F\u5EA6 = " + html.length);
+        handlePollResponse(html);
+        done();
+      }).catch(function(error) {
+        console.error("[LSB \u5B9E\u65F6\u66F4\u65B0] \u8F6E\u8BE2\u8BF7\u6C42\u5931\u8D25 (fetch):", error);
+        done();
+      });
+    }
+  }
+  function buildPollUrl() {
+    const base = window.location.origin + window.location.pathname;
+    const sort = new URLSearchParams(window.location.search).get("sort");
+    if (sort) {
+      return base + "?sort=" + encodeURIComponent(sort);
+    }
+    return base;
+  }
+  function handlePollResponse(html) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u89E3\u6790\u54CD\u5E94\uFF1Abadge = " + String(doc.querySelector(".nav-mine .notify-badge") ? doc.querySelector(".nav-mine .notify-badge").textContent : "\u65E0") + " \u54CD\u5E94\u666E\u901A\u5E16\u6570 = " + doc.querySelectorAll(".post-list .post-item:not(.topic-pinned)").length + " \u5F53\u524D\u666E\u901A\u5E16\u6570 = " + document.querySelectorAll(".post-list .post-item:not(.topic-pinned)").length);
+    updateNotifyBadge(doc);
+    insertNewPosts(doc);
+  }
+  function updateNotifyBadge(doc) {
+    const navMine = document.querySelector(".nav-mine");
+    const freshBadge = doc.querySelector(".nav-mine .notify-badge");
+    if (!navMine) {
+      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5F53\u524D\u9875\u9762\u65E0 .nav-mine\uFF0C\u8DF3\u8FC7\u901A\u77E5\u5FBD\u7AE0");
+      return;
+    }
+    const freshCount = freshBadge ? Number(freshBadge.textContent) || 0 : 0;
+    let currentBadge = navMine.querySelector(".notify-badge");
+    const currentCount = currentBadge ? Number(currentBadge.textContent) || 0 : 0;
+    if (!currentBadge && freshCount === 0) {
+      return;
+    }
+    if (currentBadge && freshCount === currentCount) {
+      return;
+    }
+    if (!currentBadge) {
+      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u521B\u5EFA\u901A\u77E5\u5FBD\u7AE0: " + freshCount);
+      currentBadge = document.createElement("span");
+      currentBadge.className = "notify-badge";
+      navMine.appendChild(currentBadge);
+    }
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u901A\u77E5\u5FBD\u7AE0\u66F4\u65B0: " + currentCount + " -> " + freshCount);
+    currentBadge.textContent = String(freshCount);
+    if (freshCount > currentCount) {
+      showStatus("\u6709 " + (freshCount - currentCount) + " \u6761\u65B0\u901A\u77E5");
+    }
+  }
+  function insertNewPosts(doc) {
+    const currentList = document.querySelector(".post-list");
+    if (!currentList) {
+      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5F53\u524D\u9875\u9762\u65E0 .post-list\uFF0C\u8DF3\u8FC7\u5E16\u5B50\u68C0\u6D4B");
+      return;
+    }
+    const currentMax = maxTopicId(document, true);
+    if (currentMax === 0) {
+      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5F53\u524D\u9875\u9762\u672A\u89E3\u6790\u5230\u666E\u901A\u5E16\u5B50 id\uFF0C\u8DF3\u8FC7\u5E16\u5B50\u68C0\u6D4B");
+      return;
+    }
+    const freshItems = Array.from(doc.querySelectorAll(".post-list .post-item")).filter(function(item) {
+      return !item.classList.contains("topic-pinned");
+    });
+    const toInsert = [];
+    for (const item of freshItems) {
+      const title = item.querySelector('.post-title[href*="/topic/"]');
+      const match = title && /\/topic\/(\d+)/.exec(title.getAttribute("href") || "");
+      const id = match ? Number(match[1]) : 0;
+      if (id > currentMax) {
+        toInsert.push(item.outerHTML);
+      }
+    }
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5F53\u524D\u6700\u5927\u666E\u901A\u5E16 id = " + currentMax + "\uFF0C\u54CD\u5E94\u666E\u901A\u5E16\u6570 = " + freshItems.length + "\uFF0C\u9700\u8981\u63D2\u5165 = " + toInsert.length);
+    if (!toInsert.length) {
+      return;
+    }
+    const pinnedItems = currentList.querySelectorAll(".topic-pinned");
+    const lastPinned = pinnedItems.length ? pinnedItems[pinnedItems.length - 1] : null;
+    if (lastPinned) {
+      lastPinned.insertAdjacentHTML("afterend", toInsert.join(""));
+    } else {
+      currentList.insertAdjacentHTML("afterbegin", toInsert.join(""));
+    }
+    scheduleHomeMarkerEnhancements();
+    scheduleFilter();
+    applyHomePostNewWindow();
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5DF2\u63D2\u5165 " + toInsert.length + " \u4E2A\u65B0\u5E16\u5B50");
+    showStatus("\u5DF2\u81EA\u52A8\u52A0\u8F7D " + toInsert.length + " \u4E2A\u65B0\u5E16\u5B50");
+  }
+  function maxTopicId(root, excludePinned = false) {
+    let max = 0;
+    root.querySelectorAll('.post-item .post-title[href*="/topic/"]').forEach(function(anchor) {
+      const item = anchor.closest(".post-item");
+      if (excludePinned && item && item.classList.contains("topic-pinned")) {
+        return;
+      }
+      const match = /\/topic\/(\d+)/.exec(anchor.getAttribute("href") || "");
+      if (match) {
+        const id = Number(match[1]);
+        if (id > max) {
+          max = id;
+        }
+      }
+    });
+    return max;
+  }
+
   // dist/autoCheckin.js
   var autoCheckinInFlight = false;
   var autoCheckinStartTimer = 0;
@@ -2897,6 +3077,7 @@
     document.documentElement.setAttribute("data-lsb-ready", "");
     applyHomePersonalization();
     applyHomePostNewWindow();
+    applyRealtimeRefresh();
     applySidebarSwap();
     enhanceSearchFields(document);
     enforceRadiusOverrides();
@@ -2970,6 +3151,11 @@
       '      <h2 class="lsb-section-title" id="lsb-home-title">\u9996\u9875\u8BBE\u7F6E</h2>',
       '      <label class="lsb-check-line"><input type="checkbox" data-lsb-home-personalized><span>\u542F\u7528\u9996\u9875\u4E2A\u6027\u5316\u5934\u56FE\u4E0E\u641C\u7D22</span></label>',
       '      <label class="lsb-check-line"><input type="checkbox" data-lsb-home-post-new-window><span>\u5E16\u5B50\u65B0\u7A97\u53E3\u6253\u5F00</span></label>',
+      '      <label class="lsb-check-line"><input type="checkbox" data-lsb-realtime-refresh><span>\u5B9E\u65F6\u66F4\u65B0\uFF08\u901A\u77E5\u4E0E\u5E16\u5B50\uFF09</span></label>',
+      '      <div class="lsb-range-line" data-lsb-realtime-interval-line>',
+      '        <label class="lsb-range-head"><span>\u8F6E\u8BE2\u95F4\u9694\uFF08\u79D2\uFF09</span><output data-lsb-realtime-interval-output></output></label>',
+      '        <input type="range" min="15" max="600" step="15" data-lsb-realtime-interval>',
+      "      </div>",
       '      <label class="lsb-check-line"><input type="checkbox" data-lsb-home-sidebar-swap><span>\u4FA7\u680F\u4F4D\u7F6E\u5BF9\u8C03</span></label>',
       '      <label class="lsb-check-line"><input type="checkbox" data-lsb-identity-badges><span>\u8EAB\u4EFD\u6807\u8BC6\u7F8E\u5316</span></label>',
       '      <label class="lsb-check-line"><input type="checkbox" data-lsb-uid-badges><span>UID \u7F8E\u5316\uFF08\u4E0E\u8EAB\u4EFD\u6807\u8BC6\u914D\u5957\uFF09</span></label>',
@@ -3273,6 +3459,21 @@
       syncInterface();
       persistSettings();
     });
+    ui.panel.querySelector("[data-lsb-realtime-refresh]").addEventListener("change", function(event) {
+      settings.realtimeRefresh = event.target.checked;
+      applyRealtimeRefresh();
+      syncInterface();
+      persistSettings();
+      showStatus("\u8BBE\u7F6E\u5DF2\u4FDD\u5B58");
+    });
+    ui.panel.querySelector("[data-lsb-realtime-interval]").addEventListener("input", function(event) {
+      settings.realtimeRefreshInterval = Number(event.target.value);
+      ui.panel.querySelector("[data-lsb-realtime-interval-output]").textContent = String(event.target.value);
+      if (settings.realtimeRefresh) {
+        applyRealtimeRefresh();
+      }
+      persistSettings();
+    });
     ui.panel.querySelector("[data-lsb-home-sidebar-swap]").addEventListener("change", function(event) {
       settings.sidebarSwap = event.target.checked;
       applySidebarSwap();
@@ -3565,6 +3766,11 @@
     ui.panel.querySelector("[data-lsb-theme]").value = settings.theme;
     ui.panel.querySelector("[data-lsb-home-personalized]").checked = settings.homePersonalized;
     ui.panel.querySelector("[data-lsb-home-post-new-window]").checked = settings.homePostNewWindow;
+    ui.panel.querySelector("[data-lsb-realtime-refresh]").checked = settings.realtimeRefresh;
+    const realtimeInterval = ui.panel.querySelector("[data-lsb-realtime-interval]");
+    realtimeInterval.value = String(settings.realtimeRefreshInterval);
+    ui.panel.querySelector("[data-lsb-realtime-interval-output]").textContent = String(settings.realtimeRefreshInterval);
+    ui.panel.querySelector("[data-lsb-realtime-interval-line]").style.display = settings.realtimeRefresh ? "" : "none";
     ui.panel.querySelector("[data-lsb-home-sidebar-swap]").checked = settings.sidebarSwap;
     ui.panel.querySelector("[data-lsb-identity-badges]").checked = settings.identityBadges;
     ui.panel.querySelector("[data-lsb-uid-badges]").checked = settings.uidBadges;
