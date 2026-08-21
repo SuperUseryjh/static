@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LINUX.SB-Enhance-Script
 // @namespace    https://linux.sb/
-// @version      2.2.0
+// @version      2.3.0
 // @description  布局优化与功能增强脚本，包含主题布局、内容过滤、图片灯箱、可配置图床上传、自动签到、首页身份、UID、侧栏常驻版块列表与头像悬停基础资料卡。
 // @author       COMCOM + Incremental Marker & YaoOnion
 // @match        https://linux.sb/*
@@ -13,6 +13,7 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_info
 // @grant        GM_openInTab
+// @grant        GM_notification
 // @connect      *
 // @run-at       document-start
 // @license      MIT
@@ -1614,318 +1615,6 @@
     });
   }
 
-  // dist/realtime.js
-  var realtimeTimer = 0;
-  var realtimePollingInFlight = false;
-  function applyRealtimeRefresh() {
-    if (!settings.realtimeRefresh) {
-      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5DF2\u505C\u6B62\u8F6E\u8BE2");
-      stopRealtimePolling();
-      return;
-    }
-    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u542F\u52A8\u8F6E\u8BE2\uFF0C\u95F4\u9694 = " + settings.realtimeRefreshInterval + " \u79D2");
-    startRealtimePolling();
-  }
-  function startRealtimePolling() {
-    stopRealtimePolling();
-    pollOnce();
-    realtimeTimer = window.setInterval(pollOnce, settings.realtimeRefreshInterval * 1e3);
-  }
-  function stopRealtimePolling() {
-    if (realtimeTimer) {
-      window.clearInterval(realtimeTimer);
-      realtimeTimer = 0;
-    }
-  }
-  function pollOnce() {
-    if (realtimePollingInFlight || !settings.realtimeRefresh) {
-      if (realtimePollingInFlight) {
-        console.warn("[LSB \u5B9E\u65F6\u66F4\u65B0] \u4E0A\u4E00\u6B21\u8F6E\u8BE2\u5C1A\u672A\u7ED3\u675F\uFF0C\u8DF3\u8FC7\u672C\u6B21");
-      }
-      return;
-    }
-    if (!isHomePage() || document.hidden) {
-      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u8DF3\u8FC7\u8F6E\u8BE2\uFF1A\u975E\u9996\u9875=" + !isHomePage() + " \u9875\u9762\u9690\u85CF=" + document.hidden);
-      return;
-    }
-    realtimePollingInFlight = true;
-    const url = buildPollUrl();
-    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u53D1\u8D77\u8F6E\u8BE2: GET " + url);
-    const done = function() {
-      realtimePollingInFlight = false;
-    };
-    if (typeof GM_xmlhttpRequest === "function") {
-      GM_xmlhttpRequest({
-        method: "GET",
-        url,
-        timeout: 2e4,
-        onload: function(response) {
-          try {
-            const text = String(response.responseText);
-            console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] GM_xmlhttpRequest \u54CD\u5E94: status = " + response.status + " \u957F\u5EA6 = " + text.length);
-            handlePollResponse(text);
-          } catch (error) {
-            console.error("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5904\u7406\u8F6E\u8BE2\u54CD\u5E94\u5931\u8D25:", error);
-          }
-          done();
-        },
-        onerror: function() {
-          console.error("[LSB \u5B9E\u65F6\u66F4\u65B0] \u8F6E\u8BE2\u8BF7\u6C42\u5931\u8D25 (onerror)");
-          done();
-        },
-        ontimeout: function() {
-          console.error("[LSB \u5B9E\u65F6\u66F4\u65B0] \u8F6E\u8BE2\u8BF7\u6C42\u8D85\u65F6");
-          done();
-        }
-      });
-    } else {
-      fetch(url, { credentials: "same-origin" }).then(function(response) {
-        console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] fetch \u54CD\u5E94: status = " + response.status);
-        return response.text();
-      }).then(function(html) {
-        console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] fetch \u54CD\u5E94\u957F\u5EA6 = " + html.length);
-        handlePollResponse(html);
-        done();
-      }).catch(function(error) {
-        console.error("[LSB \u5B9E\u65F6\u66F4\u65B0] \u8F6E\u8BE2\u8BF7\u6C42\u5931\u8D25 (fetch):", error);
-        done();
-      });
-    }
-  }
-  function buildPollUrl() {
-    const base = window.location.origin + window.location.pathname;
-    const sort = new URLSearchParams(window.location.search).get("sort");
-    if (sort) {
-      return base + "?sort=" + encodeURIComponent(sort);
-    }
-    return base;
-  }
-  function handlePollResponse(html) {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u89E3\u6790\u54CD\u5E94\uFF1Abadge = " + String(doc.querySelector(".nav-mine .notify-badge") ? doc.querySelector(".nav-mine .notify-badge").textContent : "\u65E0") + " \u54CD\u5E94\u666E\u901A\u5E16\u6570 = " + doc.querySelectorAll(".post-list .post-item:not(.topic-pinned)").length + " \u5F53\u524D\u666E\u901A\u5E16\u6570 = " + document.querySelectorAll(".post-list .post-item:not(.topic-pinned)").length);
-    updateNotifyBadge(doc);
-    insertNewPosts(doc);
-  }
-  function updateNotifyBadge(doc) {
-    const navMine = document.querySelector(".nav-mine");
-    const freshBadge = doc.querySelector(".nav-mine .notify-badge");
-    if (!navMine) {
-      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5F53\u524D\u9875\u9762\u65E0 .nav-mine\uFF0C\u8DF3\u8FC7\u901A\u77E5\u5FBD\u7AE0");
-      return;
-    }
-    const freshCount = freshBadge ? Number(freshBadge.textContent) || 0 : 0;
-    let currentBadge = navMine.querySelector(".notify-badge");
-    const currentCount = currentBadge ? Number(currentBadge.textContent) || 0 : 0;
-    if (!currentBadge && freshCount === 0) {
-      return;
-    }
-    if (currentBadge && freshCount === currentCount) {
-      return;
-    }
-    if (!currentBadge) {
-      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u521B\u5EFA\u901A\u77E5\u5FBD\u7AE0: " + freshCount);
-      currentBadge = document.createElement("span");
-      currentBadge.className = "notify-badge";
-      navMine.appendChild(currentBadge);
-    }
-    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u901A\u77E5\u5FBD\u7AE0\u66F4\u65B0: " + currentCount + " -> " + freshCount);
-    currentBadge.textContent = String(freshCount);
-    if (freshCount > currentCount) {
-      showStatus("\u6709 " + (freshCount - currentCount) + " \u6761\u65B0\u901A\u77E5");
-    }
-  }
-  function insertNewPosts(doc) {
-    const currentList = document.querySelector(".post-list");
-    if (!currentList) {
-      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5F53\u524D\u9875\u9762\u65E0 .post-list\uFF0C\u8DF3\u8FC7\u5E16\u5B50\u68C0\u6D4B");
-      return;
-    }
-    const currentMax = maxTopicId(document, true);
-    if (currentMax === 0) {
-      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5F53\u524D\u9875\u9762\u672A\u89E3\u6790\u5230\u666E\u901A\u5E16\u5B50 id\uFF0C\u8DF3\u8FC7\u5E16\u5B50\u68C0\u6D4B");
-      return;
-    }
-    const freshItems = Array.from(doc.querySelectorAll(".post-list .post-item")).filter(function(item) {
-      return !item.classList.contains("topic-pinned");
-    });
-    const toInsert = [];
-    for (const item of freshItems) {
-      const title = item.querySelector('.post-title[href*="/topic/"]');
-      const match = title && /\/topic\/(\d+)/.exec(title.getAttribute("href") || "");
-      const id = match ? Number(match[1]) : 0;
-      if (id > currentMax) {
-        toInsert.push(item.outerHTML);
-      }
-    }
-    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5F53\u524D\u6700\u5927\u666E\u901A\u5E16 id = " + currentMax + "\uFF0C\u54CD\u5E94\u666E\u901A\u5E16\u6570 = " + freshItems.length + "\uFF0C\u9700\u8981\u63D2\u5165 = " + toInsert.length);
-    if (!toInsert.length) {
-      return;
-    }
-    const pinnedItems = currentList.querySelectorAll(".topic-pinned");
-    const lastPinned = pinnedItems.length ? pinnedItems[pinnedItems.length - 1] : null;
-    if (lastPinned) {
-      lastPinned.insertAdjacentHTML("afterend", toInsert.join(""));
-    } else {
-      currentList.insertAdjacentHTML("afterbegin", toInsert.join(""));
-    }
-    scheduleHomeMarkerEnhancements();
-    scheduleFilter();
-    applyHomePostNewWindow();
-    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5DF2\u63D2\u5165 " + toInsert.length + " \u4E2A\u65B0\u5E16\u5B50");
-    showStatus("\u5DF2\u81EA\u52A8\u52A0\u8F7D " + toInsert.length + " \u4E2A\u65B0\u5E16\u5B50");
-  }
-  function maxTopicId(root, excludePinned = false) {
-    let max = 0;
-    root.querySelectorAll('.post-item .post-title[href*="/topic/"]').forEach(function(anchor) {
-      const item = anchor.closest(".post-item");
-      if (excludePinned && item && item.classList.contains("topic-pinned")) {
-        return;
-      }
-      const match = /\/topic\/(\d+)/.exec(anchor.getAttribute("href") || "");
-      if (match) {
-        const id = Number(match[1]);
-        if (id > max) {
-          max = id;
-        }
-      }
-    });
-    return max;
-  }
-
-  // dist/autoCheckin.js
-  var autoCheckinInFlight = false;
-  var autoCheckinStartTimer = 0;
-  function getAutoCheckinDate() {
-    const now = /* @__PURE__ */ new Date();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    return now.getFullYear() + "-" + month + "-" + day;
-  }
-  function applyAutoCheckin() {
-    window.clearTimeout(autoCheckinStartTimer);
-    autoCheckinStartTimer = 0;
-    if (!settings.autoCheckin || autoCheckinInFlight || settings.autoCheckinLastDate === getAutoCheckinDate()) {
-      return;
-    }
-    const scheduleAttempt = function() {
-      autoCheckinStartTimer = window.setTimeout(function() {
-        autoCheckinStartTimer = 0;
-        performAutoCheckin();
-      }, 900);
-    };
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", scheduleAttempt, { once: true });
-    } else {
-      scheduleAttempt();
-    }
-  }
-  function hasCompletedDailyCheckin(html) {
-    return /今天已签到|已签到|签到成功|已完成签到/.test(String(html || ""));
-  }
-  function isDailyCheckinLoginPage(html) {
-    const source = String(html || "");
-    return /用户名或邮箱|忘记密码|<title[^>]*>[^<]*登录|name=["'](?:username|password)["']/i.test(source);
-  }
-  function hasDailyCheckinFailure(html) {
-    return /签到失败|请求失败|(?:csrf|token)[^\n<]{0,32}(?:失效|错误|无效)|error\s*(?:message|:)/i.test(String(html || ""));
-  }
-  function extractDailyCheckinCsrf(html) {
-    const source = String(html || "");
-    try {
-      const documentNode = new DOMParser().parseFromString(source, "text/html");
-      const input = documentNode.querySelector('input[name="_csrf"], input[name="csrf_token"], input[name="csrf"]');
-      if (input && input.value) {
-        return { name: input.name, value: input.value };
-      }
-    } catch (error) {
-    }
-    const match = source.match(/<input\b[^>]*\bname=["'](_csrf|csrf_token|csrf)["'][^>]*\bvalue=["']([^"']+)["'][^>]*>/i) || source.match(/<input\b[^>]*\bvalue=["']([^"']+)["'][^>]*\bname=["'](_csrf|csrf_token|csrf)["'][^>]*>/i);
-    if (!match) {
-      return null;
-    }
-    return match[1] === "_csrf" || match[1] === "csrf_token" || match[1] === "csrf" ? { name: match[1], value: match[2] } : { name: match[2], value: match[1] };
-  }
-  function fetchDailyCheckin(options) {
-    return fetch("/daily_checkin", Object.assign({
-      // 与参考脚本一致，显式携带当前登录会话的 Cookie。
-      credentials: "include",
-      headers: { "X-Requested-With": "XMLHttpRequest" }
-    }, options || {}));
-  }
-  function performAutoCheckin() {
-    const today = getAutoCheckinDate();
-    if (!settings.autoCheckin || autoCheckinInFlight || settings.autoCheckinLastDate === today) {
-      return;
-    }
-    autoCheckinInFlight = true;
-    fetchDailyCheckin({ method: "GET" }).then(function(response) {
-      if (!response.ok || /\/login(?:[?#]|$)/.test(response.url || "")) {
-        throw new Error("\u672A\u68C0\u6D4B\u5230\u767B\u5F55\u72B6\u6001");
-      }
-      return response.text();
-    }).then(function(html) {
-      if (isDailyCheckinLoginPage(html)) {
-        throw new Error("\u672A\u68C0\u6D4B\u5230\u767B\u5F55\u72B6\u6001");
-      }
-      if (hasCompletedDailyCheckin(html)) {
-        return { completed: true };
-      }
-      if (!settings.autoCheckin) {
-        return { cancelled: true };
-      }
-      const csrf = extractDailyCheckinCsrf(html);
-      if (!csrf || !csrf.name || !csrf.value) {
-        throw new Error("\u672A\u627E\u5230\u7B7E\u5230\u51ED\u636E");
-      }
-      const formData = new FormData();
-      formData.append(csrf.name, csrf.value);
-      return fetchDailyCheckin({ method: "POST", body: formData }).then(function(response) {
-        if (!response.ok || /\/login(?:[?#]|$)/.test(response.url || "")) {
-          throw new Error("\u7B7E\u5230\u8BF7\u6C42\u672A\u83B7\u6388\u6743");
-        }
-        return response.text();
-      }).then(function(resultHtml) {
-        if (isDailyCheckinLoginPage(resultHtml)) {
-          throw new Error("\u7B7E\u5230\u8BF7\u6C42\u672A\u83B7\u6388\u6743");
-        }
-        if (hasCompletedDailyCheckin(resultHtml)) {
-          return { completed: true };
-        }
-        return fetchDailyCheckin({ method: "GET" }).then(function(verifyResponse) {
-          if (!verifyResponse.ok || /\/login(?:[?#]|$)/.test(verifyResponse.url || "")) {
-            throw new Error("\u65E0\u6CD5\u9A8C\u8BC1\u7B7E\u5230\u7ED3\u679C");
-          }
-          return verifyResponse.text();
-        }).then(function(verifyHtml) {
-          if (isDailyCheckinLoginPage(verifyHtml)) {
-            throw new Error("\u65E0\u6CD5\u9A8C\u8BC1\u767B\u5F55\u72B6\u6001");
-          }
-          if (hasCompletedDailyCheckin(verifyHtml)) {
-            return { completed: true };
-          }
-          if (hasDailyCheckinFailure(verifyHtml)) {
-            throw new Error("\u7B7E\u5230\u72B6\u6001\u9A8C\u8BC1\u5931\u8D25");
-          }
-          return { completed: true };
-        });
-      });
-    }).then(function(result) {
-      if (!result || !result.completed) {
-        return;
-      }
-      settings.autoCheckinLastDate = today;
-      persistSettings();
-      showStatus("\u4ECA\u65E5\u81EA\u52A8\u7B7E\u5230\u5DF2\u5B8C\u6210");
-    }).catch(function(error) {
-      if (settings.autoCheckin) {
-        console.warn("[LINUX.SB \u81EA\u52A8\u7B7E\u5230]", error && error.message ? error.message : error);
-        showStatus("\u81EA\u52A8\u7B7E\u5230\u672A\u5B8C\u6210\uFF0C\u8BF7\u68C0\u67E5\u767B\u5F55\u72B6\u6001");
-      }
-    }).finally(function() {
-      autoCheckinInFlight = false;
-    });
-  }
-
   // dist/lightbox.js
   var imageLightbox = null;
   var imageLightboxImage = null;
@@ -2034,6 +1723,67 @@
       imageLightboxImage.removeAttribute("src");
       imageLightboxImage.alt = "";
     }
+  }
+
+  // dist/errorHandler.js
+  var errorDialogVisible = false;
+  function initErrorHandler() {
+    window.addEventListener("error", function(event) {
+      const error = event.error instanceof Error ? event.error : new Error(event.message || "\u672A\u77E5\u9519\u8BEF");
+      reportError(error, "\u672A\u6355\u83B7\u5F02\u5E38");
+    });
+    window.addEventListener("unhandledrejection", function(event) {
+      const reason = event && event.reason;
+      reportError(reason instanceof Error ? reason : new Error(String(reason)), "\u672A\u5904\u7406\u7684 Promise \u62D2\u7EDD");
+    });
+  }
+  function reportError(error, context, title) {
+    const message = error instanceof Error ? error.message : String(error);
+    const prefix = context ? "[" + context + "] " : "";
+    console.error(prefix, error);
+    showErrorDialog(title || "\u811A\u672C\u8FD0\u884C\u51FA\u9519", prefix + message);
+  }
+  function showErrorDialog(title, message) {
+    if (errorDialogVisible) {
+      return;
+    }
+    errorDialogVisible = true;
+    const dialog = document.createElement("div");
+    dialog.id = "lsb-global-error-dialog";
+    dialog.setAttribute("role", "alertdialog");
+    dialog.setAttribute("aria-label", title);
+    dialog.style.cssText = [
+      "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);",
+      "z-index: 2147483647; width: min(380px, calc(100vw - 32px));",
+      "padding: 18px 20px; box-sizing: border-box;",
+      "background: var(--panel, #1b1b1b); color: var(--text, #eeeeee);",
+      "border: 1px solid var(--danger, #e28b8b); border-radius: 12px;",
+      "box-shadow: 0 18px 46px var(--shadow-medium, rgba(0,0,0,.48));",
+      'font: 13px/1.5 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;',
+      "text-align: center;"
+    ].join(" ");
+    const titleEl = document.createElement("div");
+    titleEl.textContent = title;
+    titleEl.style.cssText = "font-size: 15px; font-weight: 700; margin-bottom: 10px; color: var(--danger, #e28b8b);";
+    const content = document.createElement("div");
+    content.textContent = message;
+    content.style.cssText = "color: var(--text-muted, #b6b6b6); margin-bottom: 16px; word-break: break-all;";
+    const okBtn = document.createElement("button");
+    okBtn.type = "button";
+    okBtn.textContent = "\u77E5\u9053\u4E86";
+    okBtn.style.cssText = [
+      "width: 100%; padding: 9px 12px; border: 0; border-radius: 8px;",
+      "background: var(--brand, #b8b8b8); color: #111; font: inherit; font-weight: 600; cursor: pointer;"
+    ].join(" ");
+    okBtn.addEventListener("click", function() {
+      dialog.remove();
+      errorDialogVisible = false;
+    });
+    dialog.appendChild(titleEl);
+    dialog.appendChild(content);
+    dialog.appendChild(okBtn);
+    document.body.appendChild(dialog);
+    okBtn.focus();
   }
 
   // dist/imageUpload.js
@@ -2379,9 +2129,8 @@
       showStatus("\u5DF2\u63D2\u5165 " + uploaded + " \u5F20\u56FE\u7247");
     }).catch(function(error) {
       const message = "\u56FE\u7247\u4E0A\u4F20\u5931\u8D25\uFF1A" + getUploadErrorMessage(error);
-      console.error("[LSB \u56FE\u5E8A\u4E0A\u4F20] \u4E0A\u4F20\u5931\u8D25:", error);
       showStatus(message);
-      showUploadErrorDialog(message);
+      reportError(error, "\u56FE\u5E8A\u4E0A\u4F20", "\u56FE\u7247\u4E0A\u4F20\u5931\u8D25");
     }).finally(function() {
       imageUploadBusyEditors.delete(editor);
       setImageUploadButtonState(editor, "\u4E0A\u4F20\u56FE\u7247", false);
@@ -2607,16 +2356,16 @@
             try {
               resolve(resolveUploadedImageUrl(parseUploadResponse(response.response, response.responseText), profile));
             } catch (error) {
-              console.error("[LSB \u56FE\u5E8A\u4E0A\u4F20] \u89E3\u6790\u4E0A\u4F20\u7ED3\u679C\u5931\u8D25:", error);
+              console.warn("[LSB \u56FE\u5E8A\u4E0A\u4F20] \u89E3\u6790\u4E0A\u4F20\u7ED3\u679C\u5931\u8D25\uFF08failover \u5C1D\u8BD5\u4E0B\u4E00\u4E2A\uFF09:", error);
               reject(error);
             }
           },
           onerror: function(error) {
-            console.error("[LSB \u56FE\u5E8A\u4E0A\u4F20] GM_xmlhttpRequest onerror:", error);
+            console.warn("[LSB \u56FE\u5E8A\u4E0A\u4F20] GM_xmlhttpRequest onerror\uFF08failover \u5C1D\u8BD5\u4E0B\u4E00\u4E2A\uFF09:", error);
             reject(new Error("\u7F51\u7EDC\u6216\u8DE8\u57DF\u8BF7\u6C42\u5931\u8D25"));
           },
           ontimeout: function() {
-            console.error("[LSB \u56FE\u5E8A\u4E0A\u4F20] GM_xmlhttpRequest \u8D85\u65F6(60s)");
+            console.warn("[LSB \u56FE\u5E8A\u4E0A\u4F20] GM_xmlhttpRequest \u8D85\u65F6(60s)\uFF08failover \u5C1D\u8BD5\u4E0B\u4E00\u4E2A\uFF09");
             reject(new Error("\u8BF7\u6C42\u8D85\u65F6"));
           }
         });
@@ -2637,7 +2386,7 @@
       console.log("[LSB \u56FE\u5E8A\u4E0A\u4F20] fetch \u54CD\u5E94(\u524D300\u5B57\u7B26) =", String(text).slice(0, 300));
       return resolveUploadedImageUrl(parseUploadResponse(null, text), profile);
     }).catch(function(error) {
-      console.error("[LSB \u56FE\u5E8A\u4E0A\u4F20] fetch \u8BF7\u6C42\u5931\u8D25:", error);
+      console.warn("[LSB \u56FE\u5E8A\u4E0A\u4F20] fetch \u8BF7\u6C42\u5931\u8D25\uFF08failover \u5C1D\u8BD5\u4E0B\u4E00\u4E2A\uFF09:", error);
       throw error;
     });
   }
@@ -2818,45 +2567,352 @@
     const message = error && error.message ? String(error.message) : "\u672A\u77E5\u9519\u8BEF";
     return message.slice(0, 120);
   }
-  function showUploadErrorDialog(message) {
-    if (document.getElementById("lsb-upload-error-dialog")) {
+
+  // dist/realtime.js
+  var realtimeTimer = 0;
+  var realtimePollingInFlight = false;
+  var realtimeIntervalSec = 0;
+  function applyRealtimeRefresh() {
+    if (!settings.realtimeRefresh) {
+      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5DF2\u505C\u6B62\u8F6E\u8BE2");
+      stopRealtimePolling();
       return;
     }
-    const dialog = document.createElement("div");
-    dialog.id = "lsb-upload-error-dialog";
-    dialog.setAttribute("role", "alertdialog");
-    dialog.setAttribute("aria-label", "\u56FE\u7247\u4E0A\u4F20\u5931\u8D25");
-    dialog.style.cssText = [
-      "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);",
-      "z-index: 2147483647; width: min(380px, calc(100vw - 32px));",
-      "padding: 18px 20px; box-sizing: border-box;",
-      "background: var(--panel, #1b1b1b); color: var(--text, #eeeeee);",
-      "border: 1px solid var(--danger, #e28b8b); border-radius: 12px;",
-      "box-shadow: 0 18px 46px var(--shadow-medium, rgba(0,0,0,.48));",
-      'font: 13px/1.5 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;',
-      "text-align: center;"
-    ].join(" ");
-    const title = document.createElement("div");
-    title.textContent = "\u56FE\u7247\u4E0A\u4F20\u5931\u8D25";
-    title.style.cssText = "font-size: 15px; font-weight: 700; margin-bottom: 10px; color: var(--danger, #e28b8b);";
-    const content = document.createElement("div");
-    content.textContent = message;
-    content.style.cssText = "color: var(--text-muted, #b6b6b6); margin-bottom: 16px; word-break: break-all;";
-    const okBtn = document.createElement("button");
-    okBtn.type = "button";
-    okBtn.textContent = "\u77E5\u9053\u4E86";
-    okBtn.style.cssText = [
-      "width: 100%; padding: 9px 12px; border: 0; border-radius: 8px;",
-      "background: var(--brand, #b8b8b8); color: #111; font: inherit; font-weight: 600; cursor: pointer;"
-    ].join(" ");
-    okBtn.addEventListener("click", function() {
-      dialog.remove();
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u542F\u52A8\u8F6E\u8BE2\uFF0C\u95F4\u9694 = " + settings.realtimeRefreshInterval + " \u79D2");
+    startRealtimePolling();
+  }
+  function startRealtimePolling() {
+    if (realtimeTimer && realtimeIntervalSec === settings.realtimeRefreshInterval) {
+      return;
+    }
+    stopRealtimePolling();
+    realtimeIntervalSec = settings.realtimeRefreshInterval;
+    pollOnce();
+    realtimeTimer = window.setInterval(pollOnce, settings.realtimeRefreshInterval * 1e3);
+  }
+  function stopRealtimePolling() {
+    if (realtimeTimer) {
+      window.clearInterval(realtimeTimer);
+      realtimeTimer = 0;
+      realtimeIntervalSec = 0;
+    }
+  }
+  function pollOnce() {
+    if (realtimePollingInFlight || !settings.realtimeRefresh) {
+      if (realtimePollingInFlight) {
+        console.warn("[LSB \u5B9E\u65F6\u66F4\u65B0] \u4E0A\u4E00\u6B21\u8F6E\u8BE2\u5C1A\u672A\u7ED3\u675F\uFF0C\u8DF3\u8FC7\u672C\u6B21");
+      }
+      return;
+    }
+    if (!isHomePage() || document.hidden) {
+      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u8DF3\u8FC7\u8F6E\u8BE2\uFF1A\u975E\u9996\u9875=" + !isHomePage() + " \u9875\u9762\u9690\u85CF=" + document.hidden);
+      return;
+    }
+    realtimePollingInFlight = true;
+    const url = buildPollUrl();
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u53D1\u8D77\u8F6E\u8BE2: GET " + url);
+    const done = function() {
+      realtimePollingInFlight = false;
+    };
+    if (typeof fetch === "function") {
+      fetch(url, { credentials: "same-origin" }).then(function(response) {
+        console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] fetch \u54CD\u5E94: status = " + response.status);
+        return response.text();
+      }).then(function(html) {
+        try {
+          console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] fetch \u54CD\u5E94\u957F\u5EA6 = " + html.length);
+          handlePollResponse(html);
+        } catch (error) {
+          reportError(error, "\u5B9E\u65F6\u66F4\u65B0", "\u5B9E\u65F6\u66F4\u65B0\u89E3\u6790\u5931\u8D25");
+        }
+        done();
+      }).catch(function(error) {
+        console.warn("[LSB \u5B9E\u65F6\u66F4\u65B0] fetch \u5931\u8D25\uFF0C\u56DE\u9000 GM_xmlhttpRequest:", error);
+        gmPoll(url, done);
+      });
+    } else {
+      gmPoll(url, done);
+    }
+  }
+  function gmPoll(url, done) {
+    if (typeof GM_xmlhttpRequest !== "function") {
+      done();
+      return;
+    }
+    GM_xmlhttpRequest({
+      method: "GET",
+      url,
+      timeout: 2e4,
+      headers: {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Referer": window.location.href
+      },
+      onload: function(response) {
+        try {
+          const text = String(response.responseText);
+          console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] GM_xmlhttpRequest \u54CD\u5E94: status = " + response.status + " \u957F\u5EA6 = " + text.length);
+          handlePollResponse(text);
+        } catch (error) {
+          reportError(error, "\u5B9E\u65F6\u66F4\u65B0", "\u5B9E\u65F6\u66F4\u65B0\u89E3\u6790\u5931\u8D25");
+        }
+        done();
+      },
+      onerror: function() {
+        console.warn("[LSB \u5B9E\u65F6\u66F4\u65B0] \u8F6E\u8BE2\u8BF7\u6C42\u5931\u8D25 (onerror)\uFF0C\u4E0B\u4E00\u8F6E\u91CD\u8BD5");
+        done();
+      },
+      ontimeout: function() {
+        console.warn("[LSB \u5B9E\u65F6\u66F4\u65B0] \u8F6E\u8BE2\u8BF7\u6C42\u8D85\u65F6\uFF0C\u4E0B\u4E00\u8F6E\u91CD\u8BD5");
+        done();
+      }
     });
-    dialog.appendChild(title);
-    dialog.appendChild(content);
-    dialog.appendChild(okBtn);
-    document.body.appendChild(dialog);
-    okBtn.focus();
+  }
+  function buildPollUrl() {
+    const base = window.location.origin + window.location.pathname;
+    const sort = new URLSearchParams(window.location.search).get("sort");
+    if (sort) {
+      return base + "?sort=" + encodeURIComponent(sort);
+    }
+    return base;
+  }
+  function handlePollResponse(html) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u89E3\u6790\u54CD\u5E94\uFF1Abadge = " + String(doc.querySelector(".nav-mine .notify-badge") ? doc.querySelector(".nav-mine .notify-badge").textContent : "\u65E0") + " \u54CD\u5E94\u666E\u901A\u5E16\u6570 = " + doc.querySelectorAll(".post-list .post-item:not(.topic-pinned)").length + " \u5F53\u524D\u666E\u901A\u5E16\u6570 = " + document.querySelectorAll(".post-list .post-item:not(.topic-pinned)").length);
+    updateNotifyBadge(doc);
+    replacePostAreaIfChanged(doc);
+  }
+  function updateNotifyBadge(doc) {
+    const navMine = document.querySelector(".nav-mine");
+    const freshBadge = doc.querySelector(".nav-mine .notify-badge");
+    if (!navMine) {
+      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5F53\u524D\u9875\u9762\u65E0 .nav-mine\uFF0C\u8DF3\u8FC7\u901A\u77E5\u5FBD\u7AE0");
+      return;
+    }
+    const freshCount = freshBadge ? Number(freshBadge.textContent) || 0 : 0;
+    let currentBadge = navMine.querySelector(".notify-badge");
+    const currentCount = currentBadge ? Number(currentBadge.textContent) || 0 : 0;
+    if (freshCount === 0) {
+      if (currentBadge) {
+        console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u901A\u77E5\u5F52\u96F6\uFF0C\u5220\u9664\u5FBD\u7AE0");
+        currentBadge.remove();
+      }
+      return;
+    }
+    if (!currentBadge) {
+      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u521B\u5EFA\u901A\u77E5\u5FBD\u7AE0: " + freshCount);
+      currentBadge = document.createElement("span");
+      currentBadge.className = "notify-badge";
+      navMine.appendChild(currentBadge);
+    }
+    if (freshCount === currentCount) {
+      return;
+    }
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u901A\u77E5\u5FBD\u7AE0\u66F4\u65B0: " + currentCount + " -> " + freshCount);
+    currentBadge.textContent = String(freshCount);
+    if (freshCount > currentCount) {
+      showStatus("\u6709 " + (freshCount - currentCount) + " \u6761\u65B0\u901A\u77E5");
+      if (typeof GM_notification === "function") {
+        try {
+          GM_notification({
+            title: "LINUX.SB \u65B0\u901A\u77E5",
+            text: "\u6709 " + (freshCount - currentCount) + " \u6761\u65B0\u901A\u77E5\uFF0C\u70B9\u51FB\u67E5\u770B",
+            timeout: 5e3,
+            onclick: function() {
+              window.location.href = window.location.origin + "/user/" + (getSessionUserIdFromPage() || "") + "?tab=notifications";
+            }
+          });
+        } catch (error) {
+          console.warn("[LSB \u5B9E\u65F6\u66F4\u65B0] GM_notification \u8C03\u7528\u5931\u8D25\uFF08\u6D4F\u89C8\u5668\u901A\u77E5\u53EF\u80FD\u88AB\u7981\u7528\uFF09:", error);
+        }
+      }
+    }
+  }
+  function getSessionUserIdFromPage() {
+    const navMine = document.querySelector(".nav-mine");
+    if (navMine) {
+      const match = /\/user\/(\d+)/.exec(navMine.getAttribute("href") || "");
+      if (match) {
+        return match[1];
+      }
+    }
+    return "";
+  }
+  function replacePostAreaIfChanged(doc) {
+    const currentList = document.querySelector(".post-list");
+    const freshList = doc.querySelector(".post-list");
+    if (!currentList || !freshList) {
+      console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5E16\u5B50\u533A\u57DF\u4E0D\u5B58\u5728\uFF08\u5F53\u524D=" + !!currentList + " \u54CD\u5E94=" + !!freshList + "\uFF09\uFF0C\u8DF3\u8FC7");
+      return;
+    }
+    const currentHash = getPostAreaFingerprint(currentList);
+    const freshHash = getPostAreaFingerprint(freshList);
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5E16\u5B50\u533A\u57DF\u6574\u4F53 hash\uFF1A\u5F53\u524D = " + currentHash + " \u54CD\u5E94 = " + freshHash);
+    if (currentHash === freshHash) {
+      return;
+    }
+    const freshHtml = freshList.outerHTML;
+    currentList.outerHTML = freshHtml;
+    scheduleHomeMarkerEnhancements();
+    scheduleFilter();
+    applyHomePostNewWindow();
+    updateImageLightboxTargets();
+    updateImageUploadTargets();
+    console.log("[LSB \u5B9E\u65F6\u66F4\u65B0] \u5E16\u5B50\u533A\u57DF\u5DF2\u8986\u5199");
+    showStatus("\u5E16\u5B50\u5217\u8868\u5DF2\u66F4\u65B0");
+  }
+  function getPostAreaFingerprint(root) {
+    const clone = root.cloneNode(true);
+    clone.querySelectorAll("[data-lsb-home-post-original-target],[data-lsb-home-post-original-rel],[data-lsb-home-post-new-window],[data-lsb-avatar-card-bound],[data-lsb-identity-hydrated]").forEach(function(el) {
+      el.removeAttribute("data-lsb-home-post-original-target");
+      el.removeAttribute("data-lsb-home-post-original-rel");
+      el.removeAttribute("data-lsb-home-post-new-window");
+      el.removeAttribute("data-lsb-avatar-card-bound");
+      el.removeAttribute("data-lsb-identity-hydrated");
+      el.removeAttribute("target");
+      el.removeAttribute("rel");
+    });
+    return hashString(clone.outerHTML);
+  }
+  function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i) | 0;
+    }
+    return String(hash);
+  }
+
+  // dist/autoCheckin.js
+  var autoCheckinInFlight = false;
+  var autoCheckinStartTimer = 0;
+  function getAutoCheckinDate() {
+    const now = /* @__PURE__ */ new Date();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return now.getFullYear() + "-" + month + "-" + day;
+  }
+  function applyAutoCheckin() {
+    window.clearTimeout(autoCheckinStartTimer);
+    autoCheckinStartTimer = 0;
+    if (!settings.autoCheckin || autoCheckinInFlight || settings.autoCheckinLastDate === getAutoCheckinDate()) {
+      return;
+    }
+    const scheduleAttempt = function() {
+      autoCheckinStartTimer = window.setTimeout(function() {
+        autoCheckinStartTimer = 0;
+        performAutoCheckin();
+      }, 900);
+    };
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", scheduleAttempt, { once: true });
+    } else {
+      scheduleAttempt();
+    }
+  }
+  function hasCompletedDailyCheckin(html) {
+    return /今天已签到|已签到|签到成功|已完成签到/.test(String(html || ""));
+  }
+  function isDailyCheckinLoginPage(html) {
+    const source = String(html || "");
+    return /用户名或邮箱|忘记密码|<title[^>]*>[^<]*登录|name=["'](?:username|password)["']/i.test(source);
+  }
+  function hasDailyCheckinFailure(html) {
+    return /签到失败|请求失败|(?:csrf|token)[^\n<]{0,32}(?:失效|错误|无效)|error\s*(?:message|:)/i.test(String(html || ""));
+  }
+  function extractDailyCheckinCsrf(html) {
+    const source = String(html || "");
+    try {
+      const documentNode = new DOMParser().parseFromString(source, "text/html");
+      const input = documentNode.querySelector('input[name="_csrf"], input[name="csrf_token"], input[name="csrf"]');
+      if (input && input.value) {
+        return { name: input.name, value: input.value };
+      }
+    } catch (error) {
+    }
+    const match = source.match(/<input\b[^>]*\bname=["'](_csrf|csrf_token|csrf)["'][^>]*\bvalue=["']([^"']+)["'][^>]*>/i) || source.match(/<input\b[^>]*\bvalue=["']([^"']+)["'][^>]*\bname=["'](_csrf|csrf_token|csrf)["'][^>]*>/i);
+    if (!match) {
+      return null;
+    }
+    return match[1] === "_csrf" || match[1] === "csrf_token" || match[1] === "csrf" ? { name: match[1], value: match[2] } : { name: match[2], value: match[1] };
+  }
+  function fetchDailyCheckin(options) {
+    return fetch("/daily_checkin", Object.assign({
+      // 与参考脚本一致，显式携带当前登录会话的 Cookie。
+      credentials: "include",
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    }, options || {}));
+  }
+  function performAutoCheckin() {
+    const today = getAutoCheckinDate();
+    if (!settings.autoCheckin || autoCheckinInFlight || settings.autoCheckinLastDate === today) {
+      return;
+    }
+    autoCheckinInFlight = true;
+    fetchDailyCheckin({ method: "GET" }).then(function(response) {
+      if (!response.ok || /\/login(?:[?#]|$)/.test(response.url || "")) {
+        throw new Error("\u672A\u68C0\u6D4B\u5230\u767B\u5F55\u72B6\u6001");
+      }
+      return response.text();
+    }).then(function(html) {
+      if (isDailyCheckinLoginPage(html)) {
+        throw new Error("\u672A\u68C0\u6D4B\u5230\u767B\u5F55\u72B6\u6001");
+      }
+      if (hasCompletedDailyCheckin(html)) {
+        return { completed: true };
+      }
+      if (!settings.autoCheckin) {
+        return { cancelled: true };
+      }
+      const csrf = extractDailyCheckinCsrf(html);
+      if (!csrf || !csrf.name || !csrf.value) {
+        throw new Error("\u672A\u627E\u5230\u7B7E\u5230\u51ED\u636E");
+      }
+      const formData = new FormData();
+      formData.append(csrf.name, csrf.value);
+      return fetchDailyCheckin({ method: "POST", body: formData }).then(function(response) {
+        if (!response.ok || /\/login(?:[?#]|$)/.test(response.url || "")) {
+          throw new Error("\u7B7E\u5230\u8BF7\u6C42\u672A\u83B7\u6388\u6743");
+        }
+        return response.text();
+      }).then(function(resultHtml) {
+        if (isDailyCheckinLoginPage(resultHtml)) {
+          throw new Error("\u7B7E\u5230\u8BF7\u6C42\u672A\u83B7\u6388\u6743");
+        }
+        if (hasCompletedDailyCheckin(resultHtml)) {
+          return { completed: true };
+        }
+        return fetchDailyCheckin({ method: "GET" }).then(function(verifyResponse) {
+          if (!verifyResponse.ok || /\/login(?:[?#]|$)/.test(verifyResponse.url || "")) {
+            throw new Error("\u65E0\u6CD5\u9A8C\u8BC1\u7B7E\u5230\u7ED3\u679C");
+          }
+          return verifyResponse.text();
+        }).then(function(verifyHtml) {
+          if (isDailyCheckinLoginPage(verifyHtml)) {
+            throw new Error("\u65E0\u6CD5\u9A8C\u8BC1\u767B\u5F55\u72B6\u6001");
+          }
+          if (hasCompletedDailyCheckin(verifyHtml)) {
+            return { completed: true };
+          }
+          if (hasDailyCheckinFailure(verifyHtml)) {
+            throw new Error("\u7B7E\u5230\u72B6\u6001\u9A8C\u8BC1\u5931\u8D25");
+          }
+          return { completed: true };
+        });
+      });
+    }).then(function(result) {
+      if (!result || !result.completed) {
+        return;
+      }
+      settings.autoCheckinLastDate = today;
+      persistSettings();
+      showStatus("\u4ECA\u65E5\u81EA\u52A8\u7B7E\u5230\u5DF2\u5B8C\u6210");
+    }).catch(function(error) {
+      if (settings.autoCheckin) {
+        console.warn("[LINUX.SB \u81EA\u52A8\u7B7E\u5230]", error && error.message ? error.message : error);
+        showStatus("\u81EA\u52A8\u7B7E\u5230\u672A\u5B8C\u6210\uFF0C\u8BF7\u68C0\u67E5\u767B\u5F55\u72B6\u6001");
+      }
+    }).finally(function() {
+      autoCheckinInFlight = false;
+    });
   }
 
   // dist/settings.js
@@ -3861,11 +3917,11 @@
             console.log("[LSB] \u5F53\u524D\u5DF2\u662F\u6700\u65B0\u7248\u672C\u3002");
           }
         } catch (error) {
-          console.error("[LSB] \u89E3\u6790\u66F4\u65B0\u4FE1\u606F\u5931\u8D25:", error);
+          console.warn("[LSB] \u89E3\u6790\u66F4\u65B0\u4FE1\u606F\u5931\u8D25\uFF08\u4E0B\u6B21\u542F\u52A8\u91CD\u8BD5\uFF09:", error);
         }
       },
       onerror: function(response) {
-        console.error("[LSB] \u68C0\u67E5\u66F4\u65B0\u5931\u8D25:", response.status, response.statusText);
+        console.warn("[LSB] \u68C0\u67E5\u66F4\u65B0\u5931\u8D25\uFF08\u4E0B\u6B21\u542F\u52A8\u91CD\u8BD5\uFF09:", response.status, response.statusText);
       }
     });
   }
@@ -3986,6 +4042,7 @@
     homeObserver.observe(document, { childList: true, subtree: true });
   }
   Object.assign(settings, loadSettings());
+  initErrorHandler();
   addStyle(buildStartupCss(settings) + "\n" + BASE_CSS);
   applySettings();
   startHomeObserver();
